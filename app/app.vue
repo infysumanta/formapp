@@ -16,27 +16,30 @@ useHead({
   ],
 });
 </script>
+
 <script>
-document.addEventListener("d365mkt-beforeformload", function () {
-  console.log("d365mkt-beforeformload");
-});
-document.addEventListener("d365mkt-afterformload", function () {
-  console.log("d365mkt-afterformload");
-});
-document.addEventListener("d365mkt-formrender", function () {
-  console.log("d365mkt-formrender");
-});
-document.addEventListener("d365mkt-formsubmit", function (event) {
-  // Example of validation using form submit event - cancelling form submission unless first name is John
-  if (document.forms[0]["firstname"].value !== "John") {
-    event.preventDefault();
-    console.log("blocked mkt-formsubmit");
-    return;
-  }
-  console.log("mkt-formsubmit" + JSON.stringify(event.detail.payload));
-});
-document.addEventListener("d365mkt-afterformsubmit", function (event) {
-  console.log("success - " + event.detail.successful);
-  console.log("payload - " + JSON.stringify(event.detail.payload));
-});
+if (typeof document !== "undefined") {
+  document.addEventListener("d365mkt-beforeformload", function () {
+    console.log("d365mkt-beforeformload");
+  });
+  document.addEventListener("d365mkt-afterformload", function () {
+    console.log("d365mkt-afterformload");
+  });
+  document.addEventListener("d365mkt-formrender", function () {
+    console.log("d365mkt-formrender");
+  });
+  document.addEventListener("d365mkt-formsubmit", function (event) {
+    // Example of validation using form submit event - cancelling form submission unless first name is John
+    if (document.forms[0]["firstname"].value !== "John") {
+      event.preventDefault();
+      console.log("blocked mkt-formsubmit");
+      return;
+    }
+    console.log("mkt-formsubmit" + JSON.stringify(event.detail.payload));
+  });
+  document.addEventListener("d365mkt-afterformsubmit", function (event) {
+    console.log("success - " + event.detail.successful);
+    console.log("payload - " + JSON.stringify(event.detail.payload));
+  });
+}
 </script>
