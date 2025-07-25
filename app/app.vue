@@ -40,7 +40,7 @@ if (typeof document !== "undefined") {
   document.addEventListener("d365mkt-afterformsubmit", function (event) {
     event.preventDefault();
     console.log({ event });
-    console.log("d365mkt-afterformsubmit", event.detail);
+    console.log("d365mkt-afterformsubmit", JSON.stringify(event.detail));
 
     console.log("success - " + event.detail.successful);
     console.log("payload - " + JSON.stringify(event.detail.payload));
