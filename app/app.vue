@@ -29,12 +29,6 @@ if (typeof document !== "undefined") {
     console.log("d365mkt-formrender");
   });
   document.addEventListener("d365mkt-formsubmit", function (event) {
-    // Example of validation using form submit event - cancelling form submission unless first name is John
-    if (document.forms[0]["firstname"].value !== "John") {
-      event.preventDefault();
-      console.log("blocked mkt-formsubmit");
-      return;
-    }
     console.log("mkt-formsubmit" + JSON.stringify(event.detail.payload));
   });
   document.addEventListener("d365mkt-afterformsubmit", function (event) {
