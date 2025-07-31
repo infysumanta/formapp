@@ -155,21 +155,15 @@ const showProgressDialog = () => {
   const dialog = document.createElement('div');
   dialog.id = 'form-dialog';
   dialog.innerHTML = `
-    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 10000;">
-      <div style="background: white; padding: 30px; border-radius: 8px; text-align: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); max-width: 400px; width: 90%;">
-        <div style="font-size: 18px; margin-bottom: 20px; color: #333;">
-          <div style="display: inline-block; width: 20px; height: 20px; border: 2px solid #f3f3f3; border-top: 2px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 10px;"></div>
-          In Progress...
+    <div class="dialog-overlay">
+      <div class="dialog-content">
+        <div class="dialog-title">
+          <div class="spinner"></div>
+          Processing Your Submission
         </div>
-        <p style="color: #666; margin: 0;">Please wait while we process your submission.</p>
+        <p class="dialog-message">Please wait while we submit your information. This may take a few moments.</p>
       </div>
     </div>
-    <style>
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-    </style>
   `;
   document.body.appendChild(dialog);
 };
@@ -186,14 +180,18 @@ const showSuccessMessage = () => {
   const dialog = document.createElement('div');
   dialog.id = 'form-dialog';
   dialog.innerHTML = `
-    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 10000;">
-      <div style="background: white; padding: 30px; border-radius: 8px; text-align: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); max-width: 400px; width: 90%;">
-        <div style="font-size: 18px; margin-bottom: 20px; color: #22c55e;">
-          ✓ Your submission was accepted.
+    <div class="dialog-overlay">
+      <div class="dialog-content">
+        <div class="dialog-title">
+          <div class="success-icon"></div>
+          Submission Successful!
         </div>
-        <button onclick="document.getElementById('form-dialog').remove()" style="background: #22c55e; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 16px;">
-          OK
-        </button>
+        <p class="dialog-message">Thank you! Your form has been submitted successfully. We'll be in touch soon.</p>
+        <div class="dialog-buttons">
+          <button onclick="document.getElementById('form-dialog').remove()" class="dialog-button dialog-button-primary">
+            OK
+          </button>
+        </div>
       </div>
     </div>
   `;
@@ -212,14 +210,18 @@ const showRejectionMessage = () => {
   const dialog = document.createElement('div');
   dialog.id = 'form-dialog';
   dialog.innerHTML = `
-    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 10000;">
-      <div style="background: white; padding: 30px; border-radius: 8px; text-align: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); max-width: 400px; width: 90%;">
-        <div style="font-size: 18px; margin-bottom: 20px; color: #ef4444;">
-          Your submission was rejected.
+    <div class="dialog-overlay">
+      <div class="dialog-content">
+        <div class="dialog-title">
+          <div class="error-icon"></div>
+          Submission Cancelled
         </div>
-        <button onclick="document.getElementById('form-dialog').remove()" style="background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 16px;">
-          OK
-        </button>
+        <p class="dialog-message">Your form submission has been cancelled. You can make changes and try again.</p>
+        <div class="dialog-buttons">
+          <button onclick="document.getElementById('form-dialog').remove()" class="dialog-button dialog-button-secondary">
+            OK
+          </button>
+        </div>
       </div>
     </div>
   `;
@@ -227,7 +229,7 @@ const showRejectionMessage = () => {
 };
 
 // Show confirmation dialog
-const showConfirmationDialog = (payload) => {
+const showConfirmationDialog = () => {
   return new Promise((resolve) => {
     // Remove any existing dialog
     const existingDialog = document.getElementById('form-dialog');
@@ -239,17 +241,18 @@ const showConfirmationDialog = (payload) => {
     const dialog = document.createElement('div');
     dialog.id = 'form-dialog';
     dialog.innerHTML = `
-      <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 10000;">
-        <div style="background: white; padding: 30px; border-radius: 8px; text-align: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); max-width: 400px; width: 90%;">
-          <div style="font-size: 18px; margin-bottom: 20px; color: #333;">
-            Are you sure you want to submit this form?
+      <div class="dialog-overlay">
+        <div class="dialog-content">
+          <div class="dialog-title">
+            Confirm Submission
           </div>
-          <div style="display: flex; gap: 15px; justify-content: center;">
-            <button id="confirm-yes" style="background: #22c55e; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 16px;">
-              Yes
+          <p class="dialog-message">Are you sure you want to submit this form? Please review your information before proceeding.</p>
+          <div class="dialog-buttons">
+            <button id="confirm-yes" class="dialog-button dialog-button-primary">
+              Yes, Submit
             </button>
-            <button id="confirm-no" style="background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 16px;">
-              No
+            <button id="confirm-no" class="dialog-button dialog-button-secondary">
+              Cancel
             </button>
           </div>
         </div>
@@ -271,7 +274,7 @@ const showConfirmationDialog = (payload) => {
 // Handle form submission with complete processing logic
 const submitFormHandler = async (payload) => {
   // Show confirmation dialog
-  const confirmed = await showConfirmationDialog(payload);
+  const confirmed = await showConfirmationDialog();
   
   if (!confirmed) {
     showRejectionMessage();

@@ -1,2 +1,436 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+
+/* Form Container Styling */
+[data-form-id] {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #f8fafc;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, sans-serif;
+}
+
+/* Form Title and Header */
+.form-title,
+.form-header h1,
+.form-header h2,
+h1,
+h2 {
+  color: #1e293b !important;
+  font-weight: 600 !important;
+  text-align: center !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.form-subtitle,
+.form-header p,
+p {
+  color: #64748b !important;
+  text-align: center !important;
+  margin-bottom: 2rem !important;
+  font-size: 0.95rem !important;
+}
+
+/* Form Section Headers */
+.form-section-header,
+.section-title {
+  background: #fff !important;
+  padding: 1rem 1.5rem !important;
+  border-radius: 0.5rem !important;
+  margin: 2rem 0 1rem 0 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  border-left: 4px solid #6366f1 !important;
+}
+
+.form-section-header h3,
+.section-title h3,
+h3 {
+  color: #1e293b !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+  font-size: 1.1rem !important;
+}
+
+.form-section-header p,
+.section-title p {
+  color: #64748b !important;
+  margin: 0.25rem 0 0 0 !important;
+  font-size: 0.9rem !important;
+}
+
+/* Form Fields Container */
+.form-fields,
+.form-group,
+.field-group {
+  background: #fff !important;
+  padding: 2rem !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  margin-bottom: 1.5rem !important;
+}
+
+/* Input Fields */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="date"],
+select,
+textarea {
+  width: 100% !important;
+  padding: 0.75rem 1rem !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 0.375rem !important;
+  font-size: 0.95rem !important;
+  color: #374151 !important;
+  background: #fff !important;
+  transition: all 0.2s ease !important;
+  box-sizing: border-box !important;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus,
+input[type="date"]:focus,
+select:focus,
+textarea:focus {
+  outline: none !important;
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+}
+
+/* Labels */
+label {
+  display: block !important;
+  font-weight: 500 !important;
+  color: #374151 !important;
+  margin-bottom: 0.5rem !important;
+  font-size: 0.95rem !important;
+}
+
+/* Required field asterisk */
+.required::after {
+  content: " *" !important;
+  color: #ef4444 !important;
+}
+
+/* Form Row Layout */
+.form-row {
+  display: flex !important;
+  gap: 1rem !important;
+  margin-bottom: 1.5rem !important;
+  flex-wrap: wrap !important;
+}
+
+.form-row > div {
+  flex: 1 !important;
+  min-width: 250px !important;
+}
+
+/* Select Dropdown */
+select {
+  appearance: none !important;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.75rem center !important;
+  background-size: 1rem !important;
+  padding-right: 2.5rem !important;
+}
+
+/* Radio Buttons */
+input[type="radio"] {
+  width: auto !important;
+}
+
+.radio-group {
+  display: flex !important;
+  gap: 1.5rem !important;
+  margin-top: 0.5rem !important;
+}
+
+.radio-option {
+  display: flex !important;
+  align-items: center !important;
+}
+
+.radio-option label {
+  margin-bottom: 0 !important;
+  margin-left: 0.5rem !important;
+  font-weight: 400 !important;
+}
+
+/* Checkboxes */
+input[type="checkbox"] {
+  width: auto !important;
+  margin-right: 0.75rem !important;
+  transform: scale(1.1) !important;
+}
+
+.checkbox-group {
+  margin: 1rem 0 !important;
+}
+
+.checkbox-option {
+  display: flex !important;
+  align-items: flex-start !important;
+  margin-bottom: 0.75rem !important;
+  padding: 0.5rem 0 !important;
+}
+
+.checkbox-option label {
+  margin-bottom: 0 !important;
+  font-weight: 400 !important;
+  line-height: 1.5 !important;
+  font-size: 0.9rem !important;
+}
+
+/* Error Messages */
+.error-message,
+.field-error {
+  color: #ef4444 !important;
+  font-size: 0.875rem !important;
+  margin-top: 0.5rem !important;
+  display: block !important;
+}
+
+/* Success Messages */
+.success-message {
+  color: #22c55e !important;
+  font-size: 0.875rem !important;
+  margin-top: 0.5rem !important;
+  display: block !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  [data-form-id] {
+    padding: 1rem !important;
+  }
+
+  .form-row {
+    flex-direction: column !important;
+  }
+
+  .form-row > div {
+    min-width: auto !important;
+  }
+
+  .form-fields,
+  .form-group,
+  .field-group {
+    padding: 1.5rem !important;
+  }
+
+  .radio-group {
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+  }
+}
+
+/* Dialog Styling */
+#form-dialog {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, sans-serif !important;
+}
+
+#form-dialog .dialog-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  z-index: 10000 !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+#form-dialog .dialog-content {
+  background: white !important;
+  padding: 2rem !important;
+  border-radius: 1rem !important;
+  text-align: center !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  max-width: 450px !important;
+  width: 90% !important;
+  border: 1px solid #e5e7eb !important;
+  animation: dialogFadeIn 0.3s ease-out !important;
+}
+
+@keyframes dialogFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+#form-dialog .dialog-title {
+  font-size: 1.25rem !important;
+  margin-bottom: 1.5rem !important;
+  color: #1f2937 !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+}
+
+#form-dialog .dialog-message {
+  color: #6b7280 !important;
+  margin: 0 0 1.5rem 0 !important;
+  font-size: 0.95rem !important;
+  line-height: 1.5 !important;
+}
+
+#form-dialog .dialog-buttons {
+  display: flex !important;
+  gap: 1rem !important;
+  justify-content: center !important;
+  margin-top: 1.5rem !important;
+}
+
+#form-dialog .dialog-button {
+  padding: 0.75rem 1.5rem !important;
+  border: none !important;
+  border-radius: 0.5rem !important;
+  cursor: pointer !important;
+  font-size: 0.95rem !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+  min-width: 80px !important;
+}
+
+#form-dialog .dialog-button-primary {
+  background: #10b981 !important;
+  color: white !important;
+}
+
+#form-dialog .dialog-button-primary:hover {
+  background: #059669 !important;
+  transform: translateY(-1px) !important;
+}
+
+#form-dialog .dialog-button-secondary {
+  background: #ef4444 !important;
+  color: white !important;
+}
+
+#form-dialog .dialog-button-secondary:hover {
+  background: #dc2626 !important;
+  transform: translateY(-1px) !important;
+}
+
+#form-dialog .dialog-button-neutral {
+  background: #6366f1 !important;
+  color: white !important;
+}
+
+#form-dialog .dialog-button-neutral:hover {
+  background: #5048e5 !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Spinner */
+.spinner {
+  display: inline-block !important;
+  width: 20px !important;
+  height: 20px !important;
+  border: 2px solid #e5e7eb !important;
+  border-top: 2px solid #6366f1 !important;
+  border-radius: 50% !important;
+  animation: spin 1s linear infinite !important;
+  margin-right: 0.75rem !important;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Success and Error Icons */
+.success-icon {
+  display: inline-block !important;
+  width: 24px !important;
+  height: 24px !important;
+  background: #10b981 !important;
+  border-radius: 50% !important;
+  margin-right: 0.75rem !important;
+  position: relative !important;
+}
+
+.success-icon::after {
+  content: "✓" !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  color: white !important;
+  font-size: 14px !important;
+  font-weight: bold !important;
+}
+
+.error-icon {
+  display: inline-block !important;
+  width: 24px !important;
+  height: 24px !important;
+  background: #ef4444 !important;
+  border-radius: 50% !important;
+  margin-right: 0.75rem !important;
+  position: relative !important;
+}
+
+.error-icon::after {
+  content: "!" !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  color: white !important;
+  font-size: 14px !important;
+  font-weight: bold !important;
+}
+
+/* custom override  */
+.textFormFieldBlock,
+.dateTimeFormFieldBlock,
+.phoneFormFieldBlock,
+.twoOptionFormFieldBlock,
+.optionSetFormFieldBlock,
+.multiOptionSetFormFieldBlock,
+.lookupFormFieldBlock {
+  padding: 0px !important;
+  gap: 2px !important;
+}
+
+.textFormFieldBlock label,
+.dateTimeFormFieldBlock label,
+.lookupFormFieldBlock label,
+.twoOptionFormFieldBlock label.block-label,
+.optionSetFormFieldBlock label.block-label,
+.multiOptionSetFormFieldBlock label.block-label,
+div[data-editorblocktype="Captcha"]
+  label[id^="wlspispHipInstructionContainer"] {
+  display: inline-block;
+  margin: 4px 0px 0px;
+  padding: 0px;
+  flex: 1 1 0%;
+  width: 100%;
+}
+
+.twoOptionFormFieldBlock div.radiobuttons > div,
+.twoOptionFormFieldBlock div.twooption_checkbox > div,
+.optionSetFormFieldBlock div.radiobuttons > div,
+.multiOptionSetFormFieldBlock fieldset > div,
+.consentBlock > div {
+  align-items: normal !important  ;
+  gap: 4px !important;
+}
