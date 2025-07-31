@@ -19,21 +19,12 @@ const formConfig = {
 // Enhanced fetch function with proper error handling and retry logic
 const formFetch = async (payload, retryCount = 0) => {
   const url = `${formConfig.baseUrl}/orgs/${formConfig.orgId}/landingpageforms/forms/${formConfig.formId}`;
-  
+
   const requestOptions = {
     headers: {
       accept: "application/json",
-      "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
       "cache-control": "no-cache",
       "content-type": "application/json",
-      pragma: "no-cache",
-      priority: "u=1, i",
-      "sec-ch-ua": '"Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"',
-      "sec-ch-ua-mobile": "?0",
-      "sec-ch-ua-platform": '"macOS"',
-      "sec-fetch-dest": "empty",
-      "sec-fetch-mode": "cors",
-      "sec-fetch-site": "cross-site",
     },
     body: JSON.stringify(payload),
     method: "POST",
@@ -43,50 +34,63 @@ const formFetch = async (payload, retryCount = 0) => {
 
   try {
     const response = await fetch(url, requestOptions);
-    
+
     if (response.ok) {
       return { success: true, data: await response.json().catch(() => ({})) };
     }
-    
+
     // Handle specific HTTP status codes
     if (response.status === 400) {
       const errorData = await response.json().catch(() => ({}));
-      return { 
-        success: false, 
-        error: "validation_error", 
-        status: 400, 
-        data: errorData 
+      return {
+        success: false,
+        error: "validation_error",
+        status: 400,
+        data: errorData,
       };
     }
-    
+
     if (response.status >= 500 && retryCount < formConfig.maxRetries) {
-      console.warn(`Server error (${response.status}), retrying... (${retryCount + 1}/${formConfig.maxRetries})`);
-      await new Promise(resolve => setTimeout(resolve, formConfig.retryDelay * (retryCount + 1)));
+      console.warn(
+        `Server error (${response.status}), retrying... (${retryCount + 1}/${
+          formConfig.maxRetries
+        })`,
+      );
+      await new Promise((resolve) =>
+        setTimeout(resolve, formConfig.retryDelay * (retryCount + 1)),
+      );
       return formFetch(payload, retryCount + 1);
     }
-    
-    return { 
-      success: false, 
-      error: "http_error", 
-      status: response.status, 
-      statusText: response.statusText 
+
+    return {
+      success: false,
+      error: "http_error",
+      status: response.status,
+      statusText: response.statusText,
     };
-    
   } catch (error) {
-    if (retryCount < formConfig.maxRetries && (
-      error.name === "NetworkError" || 
-      error.name === "TypeError" || 
-      error.message.includes("fetch")
-    )) {
-      console.warn(`Network error, retrying... (${retryCount + 1}/${formConfig.maxRetries})`, error.message);
-      await new Promise(resolve => setTimeout(resolve, formConfig.retryDelay * (retryCount + 1)));
+    if (
+      retryCount < formConfig.maxRetries &&
+      (error.name === "NetworkError" ||
+        error.name === "TypeError" ||
+        error.message.includes("fetch"))
+    ) {
+      console.warn(
+        `Network error, retrying... (${retryCount + 1}/${
+          formConfig.maxRetries
+        })`,
+        error.message,
+      );
+      await new Promise((resolve) =>
+        setTimeout(resolve, formConfig.retryDelay * (retryCount + 1)),
+      );
       return formFetch(payload, retryCount + 1);
     }
-    
-    return { 
-      success: false, 
-      error: "network_error", 
-      message: error.message 
+
+    return {
+      success: false,
+      error: "network_error",
+      message: error.message,
     };
   }
 };
@@ -172,21 +176,25 @@ if (typeof document !== "undefined") {
     );
 
     // Use the enhanced fetch function
-    window.formFetch(payload)
+    window
+      .formFetch(payload)
       .then((result) => {
         if (result.success) {
           console.log("Form submitted successfully", result.data);
           window.location.href = "/result?status=success";
         } else {
           console.error("Form submission failed:", result);
-          
+
           let errorCode = "";
-          
+
           // Handle validation errors (400 status)
           if (result.error === "validation_error" || result.status === 400) {
             if (acesPayorfound && acesPayorfound.value === "0") {
               errorCode = "payer_not_found";
-            } else if (acesIseligiblediagnosis && acesIseligiblediagnosis.value === "0") {
+            } else if (
+              acesIseligiblediagnosis &&
+              acesIseligiblediagnosis.value === "0"
+            ) {
               errorCode = "eligibility_diagnosis_not_found";
             } else {
               errorCode = "zip_code_not_found";
@@ -202,7 +210,7 @@ if (typeof document !== "undefined") {
             errorCode = "unknown_error";
             console.log("An unknown error occurred during form submission");
           }
-          
+
           window.location.href = `/result?status=error&code=${errorCode}`;
         }
       })
@@ -213,13 +221,6 @@ if (typeof document !== "undefined") {
 
     // document.forms[0].submit({});
   });
-  document.addEventListener("d365mkt-afterformsubmit", function (event) {
-    event.preventDefault();
-    console.log({ event });
-    console.log("d365mkt-afterformsubmit", JSON.stringify(event.detail));
-
-    console.log("success - " + event.detail.successful);
-    console.log("payload - " + JSON.stringify(event.detail.payload));
-  });
+  document.addEventListener("d365mkt-afterformsubmit", function (event) {});
 }
 </script>
