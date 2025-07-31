@@ -143,8 +143,144 @@ const processCaregiverField = (payload) => {
   }
 };
 
+// Show progress dialog
+const showProgressDialog = () => {
+  // Remove any existing dialog
+  const existingDialog = document.getElementById('form-dialog');
+  if (existingDialog) {
+    existingDialog.remove();
+  }
+
+  // Create progress dialog
+  const dialog = document.createElement('div');
+  dialog.id = 'form-dialog';
+  dialog.innerHTML = `
+    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 10000;">
+      <div style="background: white; padding: 30px; border-radius: 8px; text-align: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); max-width: 400px; width: 90%;">
+        <div style="font-size: 18px; margin-bottom: 20px; color: #333;">
+          <div style="display: inline-block; width: 20px; height: 20px; border: 2px solid #f3f3f3; border-top: 2px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 10px;"></div>
+          In Progress...
+        </div>
+        <p style="color: #666; margin: 0;">Please wait while we process your submission.</p>
+      </div>
+    </div>
+    <style>
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  `;
+  document.body.appendChild(dialog);
+};
+
+// Show success message
+const showSuccessMessage = () => {
+  // Remove existing dialog
+  const existingDialog = document.getElementById('form-dialog');
+  if (existingDialog) {
+    existingDialog.remove();
+  }
+
+  // Create success dialog
+  const dialog = document.createElement('div');
+  dialog.id = 'form-dialog';
+  dialog.innerHTML = `
+    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 10000;">
+      <div style="background: white; padding: 30px; border-radius: 8px; text-align: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); max-width: 400px; width: 90%;">
+        <div style="font-size: 18px; margin-bottom: 20px; color: #22c55e;">
+          ✓ Your submission was accepted.
+        </div>
+        <button onclick="document.getElementById('form-dialog').remove()" style="background: #22c55e; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 16px;">
+          OK
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(dialog);
+};
+
+// Show rejection message
+const showRejectionMessage = () => {
+  // Remove existing dialog
+  const existingDialog = document.getElementById('form-dialog');
+  if (existingDialog) {
+    existingDialog.remove();
+  }
+
+  // Create rejection dialog
+  const dialog = document.createElement('div');
+  dialog.id = 'form-dialog';
+  dialog.innerHTML = `
+    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 10000;">
+      <div style="background: white; padding: 30px; border-radius: 8px; text-align: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); max-width: 400px; width: 90%;">
+        <div style="font-size: 18px; margin-bottom: 20px; color: #ef4444;">
+          Your submission was rejected.
+        </div>
+        <button onclick="document.getElementById('form-dialog').remove()" style="background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 16px;">
+          OK
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(dialog);
+};
+
+// Show confirmation dialog
+const showConfirmationDialog = (payload) => {
+  return new Promise((resolve) => {
+    // Remove any existing dialog
+    const existingDialog = document.getElementById('form-dialog');
+    if (existingDialog) {
+      existingDialog.remove();
+    }
+
+    // Create confirmation dialog
+    const dialog = document.createElement('div');
+    dialog.id = 'form-dialog';
+    dialog.innerHTML = `
+      <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 10000;">
+        <div style="background: white; padding: 30px; border-radius: 8px; text-align: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); max-width: 400px; width: 90%;">
+          <div style="font-size: 18px; margin-bottom: 20px; color: #333;">
+            Are you sure you want to submit this form?
+          </div>
+          <div style="display: flex; gap: 15px; justify-content: center;">
+            <button id="confirm-yes" style="background: #22c55e; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 16px;">
+              Yes
+            </button>
+            <button id="confirm-no" style="background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 16px;">
+              No
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(dialog);
+
+    // Add event listeners
+    document.getElementById('confirm-yes').addEventListener('click', () => {
+      resolve(true);
+    });
+
+    document.getElementById('confirm-no').addEventListener('click', () => {
+      resolve(false);
+    });
+  });
+};
+
 // Handle form submission with complete processing logic
-const submitFormHandler = (payload) => {
+const submitFormHandler = async (payload) => {
+  // Show confirmation dialog
+  const confirmed = await showConfirmationDialog(payload);
+  
+  if (!confirmed) {
+    showRejectionMessage();
+    return;
+  }
+
+  // Show progress dialog
+  showProgressDialog();
+
   // Process form fields using extracted functions
   window.processPayorField(payload);
   window.processCaregiverField(payload);
@@ -158,38 +294,59 @@ const submitFormHandler = (payload) => {
   );
 
   // Use the enhanced fetch function
-  window
-    .formFetch(payload)
-    .then((result) => {
-      if (result.success) {
-        console.log("Form submitted successfully", result.data);
+  try {
+    const result = await window.formFetch(payload);
+    
+    // Wait for at least 3 seconds before showing result
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    
+    if (result.success) {
+      console.log("Form submitted successfully", result.data);
+      showSuccessMessage();
+      
+      // Redirect after showing success message for 2 seconds
+      setTimeout(() => {
         window.location.href = "/result?status=success";
-      } else {
-        let errorCode = "";
-        if (result.status === 400) {
-          if (acesPayorfound && acesPayorfound.value === "0") {
-            errorCode = "payer_not_found";
-          } else if (
-            acesIseligiblediagnosis &&
-            acesIseligiblediagnosis.value === "0"
-          ) {
-            errorCode = "eligibility_diagnosis_not_found";
-          } else {
-            errorCode = "zip_code_not_found";
-          }
-          console.log("400 Bad Request - Invalid form data submitted");
+      }, 2000);
+    } else {
+      let errorCode = "";
+      if (result.status === 400) {
+        if (acesPayorfound && acesPayorfound.value === "0") {
+          errorCode = "payer_not_found";
+        } else if (
+          acesIseligiblediagnosis &&
+          acesIseligiblediagnosis.value === "0"
+        ) {
+          errorCode = "eligibility_diagnosis_not_found";
         } else {
-          errorCode = "unknown_error";
-          console.log("An unknown error occurred during form submission");
+          errorCode = "zip_code_not_found";
         }
-
-        window.location.href = `/result?status=error&code=${errorCode}`;
+        console.log("400 Bad Request - Invalid form data submitted");
+      } else {
+        errorCode = "unknown_error";
+        console.log("An unknown error occurred during form submission");
       }
-    })
-    .catch((error) => {
-      console.error("Unexpected error during form submission:", error);
-      window.location.href = `/result?status=error&code=unexpected_error`;
-    });
+
+      // Remove progress dialog and redirect to error page
+      const dialog = document.getElementById('form-dialog');
+      if (dialog) {
+        dialog.remove();
+      }
+      window.location.href = `/result?status=error&code=${errorCode}`;
+    }
+  } catch (error) {
+    console.error("Unexpected error during form submission:", error);
+    
+    // Wait for at least 3 seconds before showing error
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    
+    // Remove progress dialog and redirect to error page
+    const dialog = document.getElementById('form-dialog');
+    if (dialog) {
+      dialog.remove();
+    }
+    window.location.href = `/result?status=error&code=unexpected_error`;
+  }
 };
 
 // Make functions available globally for the event handlers
@@ -198,6 +355,10 @@ if (typeof window !== "undefined") {
   window.processPayorField = processPayorField;
   window.processCaregiverField = processCaregiverField;
   window.submitFormHandler = submitFormHandler;
+  window.showConfirmationDialog = showConfirmationDialog;
+  window.showProgressDialog = showProgressDialog;
+  window.showSuccessMessage = showSuccessMessage;
+  window.showRejectionMessage = showRejectionMessage;
 }
 
 useHead({
@@ -225,6 +386,6 @@ if (typeof document !== "undefined") {
     event.preventDefault();
     window.submitFormHandler(event.detail.payload);
   });
-  document.addEventListener("d365mkt-afterformsubmit", function (event) {});
+  document.addEventListener("d365mkt-afterformsubmit", function () {});
 }
 </script>
