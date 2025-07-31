@@ -27,74 +27,9 @@ if (typeof document !== "undefined") {
   });
   document.addEventListener("d365mkt-formrender", function () {
     console.log("d365mkt-formrender");
-
-    // Add change event listeners after form is rendered
-    const caregiverField = document.querySelector(
-      'input[name="aces_startherecaregiverrelationship"]',
-    );
-    const payorField = document.querySelector('input[name="aces_payor"]');
-
-    if (caregiverField) {
-      caregiverField.addEventListener("change", function (event) {
-        const selectedValue = event.target.value;
-        if (selectedValue) {
-          const acesCaregiverValue = `msemr_codeableconcept,${selectedValue}`;
-          console.log("acesCaregiverValue", acesCaregiverValue);
-          const caregiverListItem = document.querySelector(
-            `li.ui-menu-item[data-value='${CSS.escape(acesCaregiverValue)}']`,
-          );
-          const caregiverRelationship = caregiverListItem?.querySelector(
-            ".ui-menu-item-wrapper",
-          )?.textContent;
-
-          if (caregiverRelationship) {
-            const relationshipField =
-              document.forms[0]["aces_relationshiplookuptext"];
-            if (relationshipField) {
-              relationshipField.value = caregiverRelationship;
-              relationshipField.dispatchEvent(
-                new Event("input", { bubbles: true }),
-              );
-              relationshipField.dispatchEvent(
-                new Event("change", { bubbles: true }),
-              );
-            }
-          }
-        }
-      });
-    }
-
-    if (payorField) {
-      payorField.addEventListener("change", function (event) {
-        const selectedValue = event.target.value;
-        if (selectedValue) {
-          const acesPayorValue = `account,${selectedValue}`;
-          console.log("acesPayorValue", acesPayorValue);
-          const payorListItem = document.querySelector(
-            `li.ui-menu-item[data-value='${CSS.escape(acesPayorValue)}']`,
-          );
-          const payorRelationship = payorListItem?.querySelector(
-            ".ui-menu-item-wrapper",
-          )?.textContent;
-
-          if (payorRelationship) {
-            const payorLookupField = document.forms[0]["aces_payorlookuptext"];
-            if (payorLookupField) {
-              payorLookupField.value = payorRelationship;
-              payorLookupField.dispatchEvent(
-                new Event("input", { bubbles: true }),
-              );
-              payorLookupField.dispatchEvent(
-                new Event("change", { bubbles: true }),
-              );
-            }
-          }
-        }
-      });
-    }
   });
   document.addEventListener("d365mkt-formsubmit", function (event) {
-    event.preventDefault();
+    // event.preventDefault();
 
     const payload = event.detail.payload;
 
@@ -139,8 +74,15 @@ if (typeof document !== "undefined") {
       ).value = caregiverRelationship;
     }
 
-    // console.log("d365mkt-formsubmit", JSON.stringify(payload, null, 2));
-    // document.forms[0].submit();
+    const acesIseligiblediagnosis = payload.fields.find(
+      (item) => item.key === "aces_iseligiblediagnosis",
+    );
+
+    const acesPayorfound = payload.fields.find(
+      (item) => item.key === "aces_payorfound",
+    );
+
+    // document.forms[0].submit({});
   });
   document.addEventListener("d365mkt-afterformsubmit", function (event) {
     event.preventDefault();
