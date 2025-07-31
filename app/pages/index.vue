@@ -97,9 +97,7 @@ const formFetch = async (payload, retryCount = 0) => {
 
 // Process payor field and update lookup text
 const processPayorField = (payload) => {
-  const aces_payor = payload.fields.find(
-    (item) => item.key === "aces_payor",
-  );
+  const aces_payor = payload.fields.find((item) => item.key === "aces_payor");
 
   if (aces_payor) {
     const acesPayorValue = `account,${aces_payor.value}`;
@@ -111,7 +109,9 @@ const processPayorField = (payload) => {
       ".ui-menu-item-wrapper",
     )?.textContent;
 
-    const payorLookupField = payload.fields.find((item) => item.key === "aces_payorlookuptext");
+    const payorLookupField = payload.fields.find(
+      (item) => item.key === "aces_payorlookuptext",
+    );
     if (payorLookupField) {
       payorLookupField.value = payorRelationship;
     }
