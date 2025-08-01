@@ -1,8 +1,8 @@
 <template>
   <div
-    data-form-id="76438228-4767-f011-bec2-00224809e97b"
-    data-form-api-url="https://public-usa.mkt.dynamics.com/api/v1.0/orgs/14e74438-32ad-42c2-91eb-3b40da498c56/landingpageforms"
-    data-cached-form-url="https://assets-usa.mkt.dynamics.com/14e74438-32ad-42c2-91eb-3b40da498c56/digitalassets/forms/76438228-4767-f011-bec2-00224809e97b"
+    :data-form-id="formConfig.formId"
+    :data-form-api-url="`${formConfig.baseUrl}/orgs/${formConfig.orgId}/landingpageforms`"
+    :data-cached-form-url="`https://assets-usa.mkt.dynamics.com/${formConfig.orgId}/digitalassets/forms/${formConfig.formId}`"
   ></div>
 </template>
 
