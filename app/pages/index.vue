@@ -146,14 +146,14 @@ const processCaregiverField = (payload) => {
 // Show progress dialog
 const showProgressDialog = () => {
   // Remove any existing dialog
-  const existingDialog = document.getElementById('form-dialog');
+  const existingDialog = document.getElementById("form-dialog");
   if (existingDialog) {
     existingDialog.remove();
   }
 
   // Create progress dialog
-  const dialog = document.createElement('div');
-  dialog.id = 'form-dialog';
+  const dialog = document.createElement("div");
+  dialog.id = "form-dialog";
   dialog.innerHTML = `
     <div class="dialog-overlay">
       <div class="dialog-content">
@@ -168,28 +168,115 @@ const showProgressDialog = () => {
   document.body.appendChild(dialog);
 };
 
-// Show success message
+// Enhanced success message
 const showSuccessMessage = () => {
   // Remove existing dialog
-  const existingDialog = document.getElementById('form-dialog');
+  const existingDialog = document.getElementById("form-dialog");
   if (existingDialog) {
     existingDialog.remove();
   }
 
   // Create success dialog
-  const dialog = document.createElement('div');
-  dialog.id = 'form-dialog';
+  const dialog = document.createElement("div");
+  dialog.id = "form-dialog";
   dialog.innerHTML = `
     <div class="dialog-overlay">
-      <div class="dialog-content">
-        <div class="dialog-title">
-          <div class="success-icon"></div>
-          Submission Successful!
+      <div class="dialog-content success-dialog">
+        <div class="dialog-icon-container success-icon-container">
+          <svg class="dialog-icon success-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
         </div>
-        <p class="dialog-message">Thank you! Your form has been submitted successfully. We'll be in touch soon.</p>
+        <h1 class="dialog-title-large">Success!</h1>
+        <p class="dialog-message-large">Your form has been submitted successfully. We'll be in touch with you soon.</p>
+        <div class="dialog-buttons">
+          <button onclick="document.getElementById('form-dialog').remove(); window.location.reload();" class="dialog-button dialog-button-success">
+            Submit Another Form
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(dialog);
+};
+
+// Enhanced error message with specific error handling
+const showErrorMessage = (errorCode = "unknown_error") => {
+  // Remove existing dialog
+  const existingDialog = document.getElementById("form-dialog");
+  if (existingDialog) {
+    existingDialog.remove();
+  }
+
+  // Define error messages based on error codes from result.vue
+  const errorMessages = {
+    payer_not_found: {
+      title: "Insurance Provider Not Found",
+      description:
+        "We couldn't find your insurance provider in our system. Our support team will contact you to assist with your eligibility.",
+      details: null,
+    },
+    eligibility_diagnosis_not_found: {
+      title: "Diagnosis Not Eligible",
+      description:
+        "The diagnosis provided may not be eligible for our services. Our support team will contact you to discuss your options.",
+      details: null,
+    },
+    zip_code_not_found: {
+      title: "Service Area Not Available",
+      description:
+        "We may not currently serve your area. Our support team will contact you to check availability in your location.",
+      details: null,
+    },
+    network_error: {
+      title: "Connection Problem",
+      description:
+        "There was a network error while submitting your form. Please try submitting again.",
+      details: null,
+    },
+    unexpected_error: {
+      title: "Unexpected Error",
+      description:
+        "An unexpected error occurred while processing your submission. Please try submitting again.",
+      details: null,
+    },
+    unknown_error: {
+      title: "Submission Error",
+      description:
+        "There was an error processing your submission. Please try submitting again.",
+      details: null,
+    },
+  };
+
+  const errorInfo = errorMessages[errorCode] || errorMessages.unknown_error;
+
+  // Create error dialog
+  const dialog = document.createElement("div");
+  dialog.id = "form-dialog";
+  dialog.innerHTML = `
+    <div class="dialog-overlay">
+      <div class="dialog-content error-dialog">
+        <div class="dialog-icon-container error-icon-container">
+          <svg class="dialog-icon error-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </div>
+        <h1 class="dialog-title-large">${errorInfo.title}</h1>
+        <p class="dialog-message-large">${errorInfo.description}</p>
+        ${
+          errorInfo.details
+            ? `<div class="error-details">
+          <h3 class="error-details-title">What you can do:</h3>
+          <div>${errorInfo.details}</div>
+        </div>`
+            : ""
+        }
         <div class="dialog-buttons">
           <button onclick="document.getElementById('form-dialog').remove()" class="dialog-button dialog-button-primary">
-            OK
+            Try Again
+          </button>
+          <button onclick="window.location.href='mailto:support@example.com?subject=Form Submission Error&body=Error Code: ${errorCode}'" class="dialog-button dialog-button-secondary">
+            Contact Support
           </button>
         </div>
       </div>
@@ -201,14 +288,14 @@ const showSuccessMessage = () => {
 // Show rejection message
 const showRejectionMessage = () => {
   // Remove existing dialog
-  const existingDialog = document.getElementById('form-dialog');
+  const existingDialog = document.getElementById("form-dialog");
   if (existingDialog) {
     existingDialog.remove();
   }
 
   // Create rejection dialog
-  const dialog = document.createElement('div');
-  dialog.id = 'form-dialog';
+  const dialog = document.createElement("div");
+  dialog.id = "form-dialog";
   dialog.innerHTML = `
     <div class="dialog-overlay">
       <div class="dialog-content">
@@ -232,14 +319,14 @@ const showRejectionMessage = () => {
 const showConfirmationDialog = () => {
   return new Promise((resolve) => {
     // Remove any existing dialog
-    const existingDialog = document.getElementById('form-dialog');
+    const existingDialog = document.getElementById("form-dialog");
     if (existingDialog) {
       existingDialog.remove();
     }
 
     // Create confirmation dialog
-    const dialog = document.createElement('div');
-    dialog.id = 'form-dialog';
+    const dialog = document.createElement("div");
+    dialog.id = "form-dialog";
     dialog.innerHTML = `
       <div class="dialog-overlay">
         <div class="dialog-content">
@@ -261,11 +348,11 @@ const showConfirmationDialog = () => {
     document.body.appendChild(dialog);
 
     // Add event listeners
-    document.getElementById('confirm-yes').addEventListener('click', () => {
+    document.getElementById("confirm-yes").addEventListener("click", () => {
       resolve(true);
     });
 
-    document.getElementById('confirm-no').addEventListener('click', () => {
+    document.getElementById("confirm-no").addEventListener("click", () => {
       resolve(false);
     });
   });
@@ -275,7 +362,7 @@ const showConfirmationDialog = () => {
 const submitFormHandler = async (payload) => {
   // Show confirmation dialog
   const confirmed = await showConfirmationDialog();
-  
+
   if (!confirmed) {
     showRejectionMessage();
     return;
@@ -299,18 +386,9 @@ const submitFormHandler = async (payload) => {
   // Use the enhanced fetch function
   try {
     const result = await window.formFetch(payload);
-    
-    // Wait for at least 3 seconds before showing result
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
     if (result.success) {
       console.log("Form submitted successfully", result.data);
       showSuccessMessage();
-      
-      // Redirect after showing success message for 2 seconds
-      setTimeout(() => {
-        window.location.href = "/result?status=success";
-      }, 2000);
     } else {
       let errorCode = "";
       if (result.status === 400) {
@@ -330,25 +408,17 @@ const submitFormHandler = async (payload) => {
         console.log("An unknown error occurred during form submission");
       }
 
-      // Remove progress dialog and redirect to error page
-      const dialog = document.getElementById('form-dialog');
-      if (dialog) {
-        dialog.remove();
-      }
-      window.location.href = `/result?status=error&code=${errorCode}`;
+      // Show error dialog instead of redirecting
+      showErrorMessage(errorCode);
     }
   } catch (error) {
     console.error("Unexpected error during form submission:", error);
-    
+
     // Wait for at least 3 seconds before showing error
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    // Remove progress dialog and redirect to error page
-    const dialog = document.getElementById('form-dialog');
-    if (dialog) {
-      dialog.remove();
-    }
-    window.location.href = `/result?status=error&code=unexpected_error`;
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    // Show error dialog instead of redirecting
+    showErrorMessage("unexpected_error");
   }
 };
 
@@ -361,6 +431,7 @@ if (typeof window !== "undefined") {
   window.showConfirmationDialog = showConfirmationDialog;
   window.showProgressDialog = showProgressDialog;
   window.showSuccessMessage = showSuccessMessage;
+  window.showErrorMessage = showErrorMessage;
   window.showRejectionMessage = showRejectionMessage;
 }
 
