@@ -12,6 +12,7 @@ const formConfig = {
   formId: "76438228-4767-f011-bec2-00224809e97b",
   orgId: "14e74438-32ad-42c2-91eb-3b40da498c56",
   baseUrl: "https://public-usa.mkt.dynamics.com/api/v1.0",
+  successRedirectUrl: "https://client-connect-core.powerappsportals.com/SignIn",
   maxRetries: 3,
   retryDelay: 1000,
 };
@@ -169,12 +170,22 @@ const showProgressDialog = () => {
 };
 
 // Enhanced success message
-const showSuccessMessage = () => {
+const showSuccessMessage = (payload) => {
   // Remove existing dialog
   const existingDialog = document.getElementById("form-dialog");
   if (existingDialog) {
     existingDialog.remove();
   }
+
+  // Extract email from payload and construct proper URL
+  const emailField = payload?.fields?.find(
+    (field) => field.key === "emailaddress1",
+  );
+  const userEmail = emailField?.value || "abc@xyz.com";
+
+  const url = new URL(formConfig.successRedirectUrl);
+  url.searchParams.set("preQualEmail", userEmail);
+  const redirectUrl = url.toString();
 
   // Create success dialog
   const dialog = document.createElement("div");
@@ -190,8 +201,8 @@ const showSuccessMessage = () => {
         <h1 class="dialog-title-large">Success!</h1>
         <p class="dialog-message-large">Your form has been submitted successfully. We'll be in touch with you soon.</p>
         <div class="dialog-buttons">
-          <button onclick="document.getElementById('form-dialog').remove(); window.location.reload();" class="dialog-button dialog-button-success">
-            Submit Another Form
+          <button onclick="window.location.href='${redirectUrl}'" class="dialog-button dialog-button-success">
+            Continue
           </button>
         </div>
       </div>
@@ -388,7 +399,7 @@ const submitFormHandler = async (payload) => {
     const result = await window.formFetch(payload);
     if (result.success) {
       console.log("Form submitted successfully", result.data);
-      showSuccessMessage();
+      showSuccessMessage(payload);
     } else {
       let errorCode = "";
       if (result.status === 400) {
