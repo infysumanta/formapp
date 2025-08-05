@@ -15,6 +15,66 @@ const formConfig = {
   successRedirectUrl: "https://client-connect-core.powerappsportals.com/SignIn",
 };
 
+// Unified messages object containing all dialog messages
+const messages = {
+  progress: {
+    title: "Processing Your Submission",
+    message: "Please wait while we submit your information. This may take a few moments.",
+  },
+  success: {
+    title: "Success!",
+    message: "Your form has been submitted successfully. We'll be in touch with you soon.",
+    buttonText: "Continue",
+  },
+  confirmation: {
+    title: "Confirm Submission",
+    message: "Are you sure you want to submit this form? Please review your information before proceeding.",
+    confirmText: "Yes, Submit",
+    cancelText: "Cancel",
+  },
+  rejection: {
+    title: "Submission Cancelled",
+    message: "Your form submission has been cancelled. You can make changes and try again.",
+    buttonText: "OK",
+  },
+  errors: {
+    payer_not_found: {
+      title: "Insurance Provider Not Found",
+      description: "We couldn't find your insurance provider in our system. Our support team will contact you to assist with your eligibility.",
+      details: null,
+    },
+    eligibility_diagnosis_not_found: {
+      title: "Diagnosis Not Eligible",
+      description: "The diagnosis provided may not be eligible for our services. Our support team will contact you to discuss your options.",
+      details: null,
+    },
+    zip_code_not_found: {
+      title: "Service Area Not Available",
+      description: "We may not currently serve your area. Our support team will contact you to check availability in your location.",
+      details: null,
+    },
+    network_error: {
+      title: "Connection Problem",
+      description: "There was a network error while submitting your form. Please try submitting again.",
+      details: null,
+    },
+    unexpected_error: {
+      title: "Unexpected Error",
+      description: "An unexpected error occurred while processing your submission. Please try submitting again.",
+      details: null,
+    },
+    unknown_error: {
+      title: "Submission Error",
+      description: "There was an error processing your submission. Please try submitting again.",
+      details: null,
+    },
+  },
+  buttons: {
+    tryAgain: "Try Again",
+    contactSupport: "Contact Support",
+  },
+};
+
 // Fetch function with proper error handling
 const formFetch = async (payload) => {
   const url = `${formConfig.baseUrl}/orgs/${formConfig.orgId}/landingpageforms/forms/${formConfig.formId}`;
@@ -128,9 +188,9 @@ const showProgressDialog = () => {
       <div class="dialog-content">
         <div class="dialog-title">
           <div class="spinner"></div>
-          Processing Your Submission
+          ${messages.progress.title}
         </div>
-        <p class="dialog-message">Please wait while we submit your information. This may take a few moments.</p>
+        <p class="dialog-message">${messages.progress.message}</p>
       </div>
     </div>
   `;
@@ -166,11 +226,11 @@ const showSuccessMessage = (payload) => {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h1 class="dialog-title-large">Success!</h1>
-        <p class="dialog-message-large">Your form has been submitted successfully. We'll be in touch with you soon.</p>
+        <h1 class="dialog-title-large">${messages.success.title}</h1>
+        <p class="dialog-message-large">${messages.success.message}</p>
         <div class="dialog-buttons">
           <button onclick="window.location.href='${redirectUrl}'" class="dialog-button dialog-button-success">
-            Continue
+            ${messages.success.buttonText}
           </button>
         </div>
       </div>
@@ -187,47 +247,7 @@ const showErrorMessage = (errorCode = "unknown_error") => {
     existingDialog.remove();
   }
 
-  // Define error messages based on error codes from result.vue
-  const errorMessages = {
-    payer_not_found: {
-      title: "Insurance Provider Not Found",
-      description:
-        "We couldn't find your insurance provider in our system. Our support team will contact you to assist with your eligibility.",
-      details: null,
-    },
-    eligibility_diagnosis_not_found: {
-      title: "Diagnosis Not Eligible",
-      description:
-        "The diagnosis provided may not be eligible for our services. Our support team will contact you to discuss your options.",
-      details: null,
-    },
-    zip_code_not_found: {
-      title: "Service Area Not Available",
-      description:
-        "We may not currently serve your area. Our support team will contact you to check availability in your location.",
-      details: null,
-    },
-    network_error: {
-      title: "Connection Problem",
-      description:
-        "There was a network error while submitting your form. Please try submitting again.",
-      details: null,
-    },
-    unexpected_error: {
-      title: "Unexpected Error",
-      description:
-        "An unexpected error occurred while processing your submission. Please try submitting again.",
-      details: null,
-    },
-    unknown_error: {
-      title: "Submission Error",
-      description:
-        "There was an error processing your submission. Please try submitting again.",
-      details: null,
-    },
-  };
-
-  const errorInfo = errorMessages[errorCode] || errorMessages.unknown_error;
+  const errorInfo = messages.errors[errorCode] || messages.errors.unknown_error;
 
   // Create error dialog
   const dialog = document.createElement("div");
@@ -252,10 +272,10 @@ const showErrorMessage = (errorCode = "unknown_error") => {
         }
         <div class="dialog-buttons">
           <button onclick="document.getElementById('form-dialog').remove()" class="dialog-button dialog-button-primary">
-            Try Again
+            ${messages.buttons.tryAgain}
           </button>
           <button onclick="window.location.href='mailto:support@example.com?subject=Form Submission Error&body=Error Code: ${errorCode}'" class="dialog-button dialog-button-secondary">
-            Contact Support
+            ${messages.buttons.contactSupport}
           </button>
         </div>
       </div>
@@ -280,12 +300,12 @@ const showRejectionMessage = () => {
       <div class="dialog-content">
         <div class="dialog-title">
           <div class="error-icon"></div>
-          Submission Cancelled
+          ${messages.rejection.title}
         </div>
-        <p class="dialog-message">Your form submission has been cancelled. You can make changes and try again.</p>
+        <p class="dialog-message">${messages.rejection.message}</p>
         <div class="dialog-buttons">
           <button onclick="document.getElementById('form-dialog').remove()" class="dialog-button dialog-button-secondary">
-            OK
+            ${messages.rejection.buttonText}
           </button>
         </div>
       </div>
@@ -310,15 +330,15 @@ const showConfirmationDialog = () => {
       <div class="dialog-overlay">
         <div class="dialog-content">
           <div class="dialog-title">
-            Confirm Submission
+            ${messages.confirmation.title}
           </div>
-          <p class="dialog-message">Are you sure you want to submit this form? Please review your information before proceeding.</p>
+          <p class="dialog-message">${messages.confirmation.message}</p>
           <div class="dialog-buttons">
             <button id="confirm-yes" class="dialog-button dialog-button-primary">
-              Yes, Submit
+              ${messages.confirmation.confirmText}
             </button>
             <button id="confirm-no" class="dialog-button dialog-button-secondary">
-              Cancel
+              ${messages.confirmation.cancelText}
             </button>
           </div>
         </div>
