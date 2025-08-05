@@ -13,12 +13,10 @@ const formConfig = {
   orgId: "14e74438-32ad-42c2-91eb-3b40da498c56",
   baseUrl: "https://public-usa.mkt.dynamics.com/api/v1.0",
   successRedirectUrl: "https://client-connect-core.powerappsportals.com/SignIn",
-  maxRetries: 3,
-  retryDelay: 1000,
 };
 
-// Enhanced fetch function with proper error handling and retry logic
-const formFetch = async (payload, retryCount = 0) => {
+// Fetch function with proper error handling
+const formFetch = async (payload) => {
   const url = `${formConfig.baseUrl}/orgs/${formConfig.orgId}/landingpageforms/forms/${formConfig.formId}`;
 
   const requestOptions = {
@@ -51,18 +49,6 @@ const formFetch = async (payload, retryCount = 0) => {
       };
     }
 
-    if (response.status >= 500 && retryCount < formConfig.maxRetries) {
-      console.warn(
-        `Server error (${response.status}), retrying... (${retryCount + 1}/${
-          formConfig.maxRetries
-        })`,
-      );
-      await new Promise((resolve) =>
-        setTimeout(resolve, formConfig.retryDelay * (retryCount + 1)),
-      );
-      return formFetch(payload, retryCount + 1);
-    }
-
     return {
       success: false,
       error: "http_error",
@@ -70,24 +56,6 @@ const formFetch = async (payload, retryCount = 0) => {
       statusText: response.statusText,
     };
   } catch (error) {
-    if (
-      retryCount < formConfig.maxRetries &&
-      (error.name === "NetworkError" ||
-        error.name === "TypeError" ||
-        error.message.includes("fetch"))
-    ) {
-      console.warn(
-        `Network error, retrying... (${retryCount + 1}/${
-          formConfig.maxRetries
-        })`,
-        error.message,
-      );
-      await new Promise((resolve) =>
-        setTimeout(resolve, formConfig.retryDelay * (retryCount + 1)),
-      );
-      return formFetch(payload, retryCount + 1);
-    }
-
     return {
       success: false,
       error: "network_error",
