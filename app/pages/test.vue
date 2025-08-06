@@ -18,54 +18,64 @@ const formConfig = {
 // Unified messages object containing all dialog messages
 const messages = {
   progress: {
-    title: "Processing Your Submission",
-    message: "Please wait while we submit your information. This may take a few moments.",
+    title: "Processing Your Information",
+    message:
+      "Please wait while we verify your information. This may take a few moments.",
   },
   success: {
     title: "Success!",
-    message: "Your form has been submitted successfully. We'll be in touch with you soon.",
-    buttonText: "Continue",
+    message:
+      "Awesome! We provide services in your area. Login using [email address] to continue with application process. Redirecting to login page...",
+    buttonText: "Continue to Login",
   },
   confirmation: {
-    title: "Confirm Submission",
-    message: "Are you sure you want to submit this form? Please review your information before proceeding.",
+    title: "Confirm Information",
+    message:
+      "Are you sure you want to submit this information? Please review your information before proceeding.",
     confirmText: "Yes, Submit",
     cancelText: "Cancel",
   },
   rejection: {
     title: "Submission Cancelled",
-    message: "Your form submission has been cancelled. You can make changes and try again.",
+    message:
+      "Your submission has been cancelled. You can make changes and try again.",
     buttonText: "OK",
   },
   errors: {
     payer_not_found: {
       title: "Insurance Provider Not Found",
-      description: "We couldn't find your insurance provider in our system. Our support team will contact you to assist with your eligibility.",
+      description:
+        "We couldn't find your insurance provider in our system. Our support team will contact you to assist with your eligibility.",
       details: null,
     },
     eligibility_diagnosis_not_found: {
       title: "Diagnosis Not Eligible",
-      description: "The diagnosis provided may not be eligible for our services. Our support team will contact you to discuss your options.",
+      description:
+        "Your application is under review. Our support team will contact you to discuss your options.",
       details: null,
     },
     zip_code_not_found: {
       title: "Service Area Not Available",
-      description: "We may not currently serve your area. Our support team will contact you to check availability in your location.",
+      description:
+        "Your application is under review. Our support team will contact you to discuss your options.",
       details: null,
     },
     network_error: {
       title: "Connection Problem",
-      description: "There was a network error while submitting your form. Please try submitting again.",
+      description:
+        "There was a network error while submitting your information. Please try submitting again.",
       details: null,
     },
     unexpected_error: {
       title: "Unexpected Error",
-      description: "An unexpected error occurred while processing your submission. Please try submitting again.",
+      description:
+        "An unexpected error occurred while processing your submission. Please try submitting again.",
       details: null,
     },
     unknown_error: {
       title: "Submission Error",
-      description: "There was an error processing your submission. Please try submitting again.",
+      description:
+        "Your application is under review. Our support team will contact you to discuss your options.",
       details: null,
     },
   },
