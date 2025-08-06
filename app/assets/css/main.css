@@ -433,6 +433,9 @@ div[data-editorblocktype="Captcha"]
   align-items: normal !important  ;
   gap: 4px !important;
 }
+.submitButtonWrapper {
+  width: 80% !important;
+}
 
 /* Enhanced Dialog Styles */
 .dialog-overlay {
