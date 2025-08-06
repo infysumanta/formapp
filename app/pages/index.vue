@@ -25,7 +25,7 @@ const messages = {
   success: {
     title: "Success!",
     message:
-      "Awesome! We provide services in your area. Login using [email address] to continue with application process. Redirecting to login page...",
+      "Awesome! We provide services in your area. Login using {userEmail} to continue with application process. Redirecting to login page...",
     buttonText: "Continue to Login",
   },
   confirmation: {
@@ -225,7 +225,11 @@ const showSuccessMessage = (payload) => {
   url.searchParams.set("preQualEmail", userEmail);
   const redirectUrl = url.toString();
 
-  // Create success dialog
+  // Create success dialog with dynamic email replacement
+  const successMessage = messages.success.message.replace(
+    "{userEmail}",
+    userEmail,
+  );
   const dialog = document.createElement("div");
   dialog.id = "form-dialog";
   dialog.innerHTML = `
@@ -237,7 +241,7 @@ const showSuccessMessage = (payload) => {
           </svg>
         </div>
         <h1 class="dialog-title-large">${messages.success.title}</h1>
-        <p class="dialog-message-large">${messages.success.message}</p>
+        <p class="dialog-message-large">${successMessage}</p>
         <div class="dialog-buttons">
           <button onclick="window.location.href='${redirectUrl}'" class="dialog-button dialog-button-success">
             ${messages.success.buttonText}
