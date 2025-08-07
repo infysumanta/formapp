@@ -156,7 +156,6 @@ const processPayorField = (payload) => {
 
   if (aces_payor) {
     const acesPayorValue = `account,${aces_payor.value}`;
-    console.log("acesPayorValue", acesPayorValue);
     const payorListItem = document.querySelector(
       `li.ui-menu-item[data-value='${CSS.escape(acesPayorValue)}']`,
     );
@@ -181,7 +180,6 @@ const processCaregiverField = (payload) => {
 
   if (aces_startherecaregiverrelationship) {
     const acesCaregiverValue = `msemr_codeableconcept,${aces_startherecaregiverrelationship.value}`;
-    console.log("acesCaregiverValue", acesCaregiverValue);
     const caregiverListItem = document.querySelector(
       `li.ui-menu-item[data-value='${CSS.escape(acesCaregiverValue)}']`,
     );
@@ -416,7 +414,6 @@ const submitFormHandler = async (payload) => {
   try {
     const result = await window.formFetch(payload);
     if (result.success) {
-      console.log("Form submitted successfully", result.data);
       showSuccessMessage(payload);
     } else {
       let errorCode = "";
@@ -431,10 +428,8 @@ const submitFormHandler = async (payload) => {
         } else {
           errorCode = "zip_code_not_found";
         }
-        console.log("400 Bad Request - Invalid form data submitted");
       } else {
         errorCode = "unknown_error";
-        console.log("An unknown error occurred during form submission");
       }
 
       // Show error dialog instead of redirecting
@@ -476,11 +471,8 @@ useHead({
 
 <script>
 if (typeof document !== "undefined") {
-  document.addEventListener("d365mkt-beforeformload", function () {
-    console.log("d365mkt-beforeformload");
-  });
+  document.addEventListener("d365mkt-beforeformload", function () {});
   document.addEventListener("d365mkt-afterformload", function () {
-    console.log("d365mkt-afterformload");
     // Add custom validation to email field
     const emailField = document.querySelector('input[type="email"]');
     if (emailField) {
@@ -490,10 +482,28 @@ if (typeof document !== "undefined") {
       );
       emailField.setAttribute("oninput", "setCustomValidity('')");
     }
+    const dateOfBirthField = document.querySelector(
+      'input[name="aces_birthdate"]',
+    );
+    if (dateOfBirthField) {
+      dateOfBirthField.setAttribute(
+        "oninvalid",
+        "setCustomValidity('Please enter a valid date of birth.')",
+      );
+      dateOfBirthField.setAttribute("oninput", "setCustomValidity('')");
+      const oneYearAgo = new Date();
+      oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+      dateOfBirthField.setAttribute(
+        "max",
+        oneYearAgo.toISOString().split("T")[0],
+      );
+      dateOfBirthField.setAttribute(
+        "onchange",
+        "if (this.valueAsDate > new Date()) { this.setCustomValidity('Date of birth cannot be in the future.'); } else { this.setCustomValidity(''); }",
+      );
+    }
   });
-  document.addEventListener("d365mkt-formrender", function () {
-    console.log("d365mkt-formrender");
-  });
+  document.addEventListener("d365mkt-formrender", function () {});
   document.addEventListener("d365mkt-formsubmit", function (event) {
     event.preventDefault();
     window.submitFormHandler(event.detail.payload);
