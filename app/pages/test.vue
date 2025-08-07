@@ -487,6 +487,57 @@ if (typeof document !== "undefined") {
       );
       emailField.setAttribute("oninput", "setCustomValidity('')");
     }
+
+    // Add phone validation and pattern to tel fields
+    const phoneFields = document.querySelectorAll('input[type="tel"]');
+    phoneFields.forEach((phoneField) => {
+      phoneField.setAttribute(
+        "pattern",
+        "^(\\+?1[-. ]?)?\\(?([2-9][0-8][0-9])\\)?[-. ]?([2-9][0-9]{2})[-. ]?([0-9]{4})$"
+      );
+      phoneField.setAttribute(
+        "oninvalid",
+        "setCustomValidity('Please enter valid phone number.')"
+      );
+      phoneField.setAttribute(
+        "title",
+        "Please enter a valid US phone number (e.g., (555) 123-4567 or 555-123-4567)"
+      );
+      
+      // Only allow numeric input and common phone formatting characters
+      phoneField.addEventListener('input', function(e) {
+        // Allow only digits, spaces, hyphens, dots, parentheses, and plus sign
+        const value = e.target.value.replace(/[^0-9\s\-\.\(\)\+]/g, '');
+        if (e.target.value !== value) {
+          e.target.value = value;
+        }
+        
+        // Validate against pattern in real-time
+        const pattern = /^(\+?1[-. ]?)?\(?([2-9][0-8][0-9])\)?[-. ]?([2-9][0-9]{2})[-. ]?([0-9]{4})$/;
+        if (e.target.value && !pattern.test(e.target.value)) {
+          e.target.setCustomValidity('Please enter valid phone number.');
+        } else {
+          e.target.setCustomValidity('');
+        }
+      });
+      
+      // Validate on blur to ensure field is checked when user leaves it
+      phoneField.addEventListener('blur', function(e) {
+        const pattern = /^(\+?1[-. ]?)?\(?([2-9][0-8][0-9])\)?[-. ]?([2-9][0-9]{2})[-. ]?([0-9]{4})$/;
+        if (e.target.value && !pattern.test(e.target.value)) {
+          e.target.setCustomValidity('Please enter valid phone number.');
+          e.target.reportValidity();
+        }
+      });
+      
+      // Prevent non-numeric keys from being pressed (except formatting characters)
+      phoneField.addEventListener('keypress', function(e) {
+        const char = String.fromCharCode(e.which);
+        if (!/[0-9\s\-\.\(\)\+]/.test(char) && !e.ctrlKey && !e.metaKey) {
+          e.preventDefault();
+        }
+      });
+    });
   });
   document.addEventListener("d365mkt-formrender", function () {});
   document.addEventListener("d365mkt-formsubmit", function (event) {
