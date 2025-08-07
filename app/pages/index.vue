@@ -58,24 +58,6 @@ const messages = {
     buttonText: "OK",
   },
   errors: {
-    payer_not_found: {
-      title: "Insurance Provider Not Found",
-      description:
-        "We couldn't find your insurance provider in our system. Our support team will contact you to assist with your eligibility.",
-      details: null,
-    },
-    eligibility_diagnosis_not_found: {
-      title: "Diagnosis Not Eligible",
-      description:
-        "Your application is under review. Our support team will contact you to discuss your options.",
-      details: null,
-    },
-    zip_code_not_found: {
-      title: "Service Area Not Available",
-      description:
-        "Your application is under review. Our support team will contact you to discuss your options.",
-      details: null,
-    },
     network_error: {
       title: "Connection Problem",
       description:
@@ -125,12 +107,18 @@ const formFetch = async (payload) => {
     }
 
     // Handle specific HTTP status codes
-    if (response.status === 400) {
-      const errorData = await response.json().catch(() => ({}));
+    if (response.status === 500) {
+      const errorText = await response.text().catch(() => '{}');
+      let errorData = {};
+      try {
+        errorData = JSON.parse(errorText);
+      } catch (parseError) {
+        errorData = { Message: errorText };
+      }
       return {
         success: false,
-        error: "validation_error",
-        status: 400,
+        error: "server_error",
+        status: 500,
         data: errorData,
       };
     }
@@ -267,15 +255,30 @@ const showSuccessMessage = (payload) => {
   document.body.appendChild(dialog);
 };
 
-// Enhanced error message with specific error handling
-const showErrorMessage = (errorCode = "unknown_error") => {
+// Enhanced error message with dynamic content support
+const showErrorMessage = (errorCode = "unknown_error", dynamicContent = null) => {
   // Remove existing dialog
   const existingDialog = document.getElementById("form-dialog");
   if (existingDialog) {
     existingDialog.remove();
   }
 
-  const errorInfo = messages.errors[errorCode] || messages.errors.unknown_error;
+  let errorInfo;
+  
+  // Prioritize dynamic content from server response
+  if (dynamicContent && dynamicContent.Message) {
+    errorInfo = {
+      title: dynamicContent.title || "Application Status",
+      description: dynamicContent.Message,
+      details: null,
+    };
+  } else {
+    // Only use hardcoded messages for network/unexpected errors
+    errorInfo = messages.errors[errorCode] || messages.errors.unknown_error;
+  }
+
+  // Use button text from server response or fallback to default
+  const buttonText = (dynamicContent && dynamicContent.buttonText) || messages.buttons.tryAgain;
 
   // Create error dialog
   const dialog = document.createElement("div");
@@ -300,7 +303,7 @@ const showErrorMessage = (errorCode = "unknown_error") => {
         }
         <div class="dialog-buttons">
           <button onclick="document.getElementById('form-dialog').remove()" class="dialog-button dialog-button-primary">
-            ${messages.buttons.tryAgain}
+            ${buttonText}
           </button>
           <button onclick="window.location.href='mailto:support@example.com?subject=Form Submission Error&body=Error Code: ${errorCode}'" class="dialog-button dialog-button-secondary">
             ${messages.buttons.contactSupport}
@@ -402,38 +405,19 @@ const submitFormHandler = async (payload) => {
   window.processPayorField(payload);
   window.processCaregiverField(payload);
 
-  const acesIseligiblediagnosis = payload.fields.find(
-    (item) => item.key === "aces_iseligiblediagnosis",
-  );
-
-  const acesPayorfound = payload.fields.find(
-    (item) => item.key === "aces_payorfound",
-  );
-
   // Use the enhanced fetch function
   try {
     const result = await window.formFetch(payload);
     if (result.success) {
       showSuccessMessage(payload);
     } else {
-      let errorCode = "";
-      if (result.status === 400) {
-        if (acesPayorfound && acesPayorfound.value === "0") {
-          errorCode = "payer_not_found";
-        } else if (
-          acesIseligiblediagnosis &&
-          acesIseligiblediagnosis.value === "0"
-        ) {
-          errorCode = "eligibility_diagnosis_not_found";
-        } else {
-          errorCode = "zip_code_not_found";
-        }
+      // Handle 500 errors with dynamic content from server
+      if (result.status === 500 && result.data) {
+        showErrorMessage("server_error", result.data);
       } else {
-        errorCode = "unknown_error";
+        // Fallback for other errors
+        showErrorMessage("unknown_error");
       }
-
-      // Show error dialog instead of redirecting
-      showErrorMessage(errorCode);
     }
   } catch (error) {
     console.error("Unexpected error during form submission:", error);
@@ -486,20 +470,17 @@ if (typeof document !== "undefined") {
     // Add phone validation and pattern to tel fields
     const phoneFields = document.querySelectorAll('input[type="tel"]');
     phoneFields.forEach((phoneField) => {
+      // Set a more flexible pattern that allows common US phone number formats
       phoneField.setAttribute(
         "pattern",
-        "^(\\+?1[-. ]?)?\\(?([2-9][0-8][0-9])\\)?[-. ]?([2-9][0-9]{2})[-. ]?([0-9]{4})$"
-      );
-      phoneField.setAttribute(
-        "oninvalid",
-        "setCustomValidity('Please enter valid phone number.')"
+        "^(\\+?1[-. ]?)?\\(?[2-9][0-9]{2}\\)?[-. ]?[2-9][0-9]{2}[-. ]?[0-9]{4}$|^[2-9][0-9]{9}$"
       );
       phoneField.setAttribute(
         "title",
-        "Please enter a valid US phone number (e.g., (555) 123-4567 or 555-123-4567)"
+        "Please enter a valid US phone number (e.g., 5551234567, (555) 123-4567, 555-123-4567, or 555.123.4567)"
       );
       
-      // Only allow numeric input and common phone formatting characters
+      // Clear custom validity on input to allow revalidation
       phoneField.addEventListener('input', function(e) {
         // Allow only digits, spaces, hyphens, dots, parentheses, and plus sign
         const value = e.target.value.replace(/[^0-9\s\-\.\(\)\+]/g, '');
@@ -507,28 +488,33 @@ if (typeof document !== "undefined") {
           e.target.value = value;
         }
         
-        // Validate against pattern in real-time
-        const pattern = /^(\+?1[-. ]?)?\(?([2-9][0-8][0-9])\)?[-. ]?([2-9][0-9]{2})[-. ]?([0-9]{4})$/;
-        if (e.target.value && !pattern.test(e.target.value)) {
-          e.target.setCustomValidity('Please enter valid phone number.');
-        } else {
-          e.target.setCustomValidity('');
-        }
+        // Reset custom validity to allow HTML5 validation to work
+        e.target.setCustomValidity('');
       });
       
-      // Validate on blur to ensure field is checked when user leaves it
+      // Set custom validity message on invalid event
+      phoneField.addEventListener('invalid', function(e) {
+        e.target.setCustomValidity('Please enter a valid US phone number (e.g., 5551234567, (555) 123-4567, or 555-123-4567)');
+      });
+      
+      // Validate on blur for immediate feedback
       phoneField.addEventListener('blur', function(e) {
-        const pattern = /^(\+?1[-. ]?)?\(?([2-9][0-8][0-9])\)?[-. ]?([2-9][0-9]{2})[-. ]?([0-9]{4})$/;
-        if (e.target.value && !pattern.test(e.target.value)) {
-          e.target.setCustomValidity('Please enter valid phone number.');
-          e.target.reportValidity();
+        if (e.target.value) {
+          const pattern = /^((\+?1[-. ]?)?\(?[2-9][0-9]{2}\)?[-. ]?[2-9][0-9]{2}[-. ]?[0-9]{4})|([2-9][0-9]{9})$/;
+          if (!pattern.test(e.target.value)) {
+            e.target.setCustomValidity('Please enter a valid US phone number (e.g., 5551234567, (555) 123-4567, or 555-123-4567)');
+            e.target.reportValidity();
+          } else {
+            e.target.setCustomValidity('');
+          }
         }
       });
       
       // Prevent non-numeric keys from being pressed (except formatting characters)
       phoneField.addEventListener('keypress', function(e) {
         const char = String.fromCharCode(e.which);
-        if (!/[0-9\s\-\.\(\)\+]/.test(char) && !e.ctrlKey && !e.metaKey) {
+        // Allow numbers, space, dash, dot, parentheses, plus, backspace, delete, arrow keys
+        if (!/[0-9\s\-\.\(\)\+]/.test(char) && !e.ctrlKey && !e.metaKey && e.keyCode !== 8 && e.keyCode !== 46) {
           e.preventDefault();
         }
       });
