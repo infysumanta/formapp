@@ -481,6 +481,15 @@ if (typeof document !== "undefined") {
   });
   document.addEventListener("d365mkt-afterformload", function () {
     console.log("d365mkt-afterformload");
+    // Add custom validation to email field
+    const emailField = document.querySelector('input[type="email"]');
+    if (emailField) {
+      emailField.setAttribute(
+        "oninvalid",
+        "setCustomValidity('Please enter valid email address.')",
+      );
+      emailField.setAttribute("oninput", "setCustomValidity('')");
+    }
   });
   document.addEventListener("d365mkt-formrender", function () {
     console.log("d365mkt-formrender");
