@@ -211,6 +211,7 @@
         baseUrl: "https://public-usa.mkt.dynamics.com/api/v1.0",
         successRedirectUrl:
           "https://client-connect-core.powerappsportals.com/SignIn",
+        contactSupportUrl: "https://www.acesaba.com/contact",
       };
 
       // Unified messages object containing all dialog messages
@@ -528,7 +529,7 @@
             },
             {
               text: messages.buttons.contactSupport,
-              onclick: `window.location.href='mailto:support@example.com?subject=Form Submission Error&body=Error Code: ${errorCode}'`,
+              onclick: `window.location.href='${formConfig.contactSupportUrl}'`,
               className: "dialog-button-secondary",
             },
           ],

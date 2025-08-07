@@ -29,6 +29,7 @@ const formConfig = {
   orgId: "14e74438-32ad-42c2-91eb-3b40da498c56",
   baseUrl: "https://public-usa.mkt.dynamics.com/api/v1.0",
   successRedirectUrl: "https://client-connect-core.powerappsportals.com/SignIn",
+  contactSupportUrl: "https://www.acesaba.com/contact",
 };
 
 // Unified messages object containing all dialog messages
@@ -305,7 +306,7 @@ const showErrorMessage = (errorCode = "unknown_error", dynamicContent = null) =>
           <button onclick="document.getElementById('form-dialog').remove()" class="dialog-button dialog-button-primary">
             ${buttonText}
           </button>
-          <button onclick="window.location.href='mailto:support@example.com?subject=Form Submission Error&body=Error Code: ${errorCode}'" class="dialog-button dialog-button-secondary">
+          <button onclick="window.location.href='${formConfig.contactSupportUrl}'" class="dialog-button dialog-button-secondary">
             ${messages.buttons.contactSupport}
           </button>
         </div>

@@ -29,6 +29,7 @@ const formConfig = {
   orgId: "22995153-1e26-409d-a380-d58e92c7e210",
   baseUrl: "https://public-usa.mkt.dynamics.com/api/v1.0",
   successRedirectUrl: "https://client-connect-test.powerappsportals.com/",
+  contactSupportUrl: "https://www.acesaba.com/contact",
 };
 
 // Unified messages object containing all dialog messages
@@ -340,7 +341,7 @@ const showErrorMessage = (errorCode = "unknown_error") => {
       },
       {
         text: messages.buttons.contactSupport,
-        onclick: `window.location.href='mailto:support@example.com?subject=Form Submission Error&body=Error Code: ${errorCode}'`,
+        onclick: `window.location.href='${formConfig.contactSupportUrl}'`,
         className: "dialog-button-secondary",
       },
     ],
