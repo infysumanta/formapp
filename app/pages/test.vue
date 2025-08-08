@@ -268,7 +268,7 @@ const showDialog = (config) => {
   const titleHtml = config.title
     ? `<${config.titleTag || "div"} class="${
         config.titleClass || "dialog-title"
-      }">${iconHtml}${config.title}</${config.titleTag || "div"}>`
+      }">${config.title}</${config.titleTag || "div"}>`
     : "";
   const messageHtml = config.message
     ? `<p class="${config.messageClass || "dialog-message"}">${
@@ -280,7 +280,7 @@ const showDialog = (config) => {
 
   const content = `${
     config.dialogClass ? `<div class="${config.dialogClass}">` : ""
-  }${titleHtml}${messageHtml}${detailsHtml}${buttonsHtml}${
+  }${iconHtml}${titleHtml}${messageHtml}${detailsHtml}${buttonsHtml}${
     config.dialogClass ? "</div>" : ""
   }`;
 

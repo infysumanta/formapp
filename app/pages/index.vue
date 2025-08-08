@@ -137,7 +137,7 @@ const formFetch = async (payload) => {
     }
 
     if (response.status === 500) {
-      const errorText = await response.text().catch(() => '{}');
+      const errorText = await response.text().catch(() => "{}");
       let errorData = {};
       try {
         errorData = JSON.parse(errorText);
@@ -268,7 +268,7 @@ const showDialog = (config) => {
   const titleHtml = config.title
     ? `<${config.titleTag || "div"} class="${
         config.titleClass || "dialog-title"
-      }">${iconHtml}${config.title}</${config.titleTag || "div"}>`
+      }">${config.title}</${config.titleTag || "div"}>`
     : "";
   const messageHtml = config.message
     ? `<p class="${config.messageClass || "dialog-message"}">${
@@ -280,7 +280,7 @@ const showDialog = (config) => {
 
   const content = `${
     config.dialogClass ? `<div class="${config.dialogClass}">` : ""
-  }${titleHtml}${messageHtml}${detailsHtml}${buttonsHtml}${
+  }${iconHtml}${titleHtml}${messageHtml}${detailsHtml}${buttonsHtml}${
     config.dialogClass ? "</div>" : ""
   }`;
 
@@ -333,9 +333,12 @@ const showSuccessMessage = (payload) => {
   });
 };
 
-const showErrorMessage = (errorCode = "unknown_error", dynamicContent = null) => {
+const showErrorMessage = (
+  errorCode = "unknown_error",
+  dynamicContent = null,
+) => {
   let errorInfo;
-  
+
   // Prioritize dynamic content from server response
   if (dynamicContent && dynamicContent.Message) {
     errorInfo = {
@@ -347,13 +350,14 @@ const showErrorMessage = (errorCode = "unknown_error", dynamicContent = null) =>
     // Only use hardcoded messages for network/unexpected errors
     errorInfo = messages.errors[errorCode] || messages.errors.unknown_error;
   }
-  
+
   const detailsHtml = errorInfo.details
     ? `<div class="error-details"><h3 class="error-details-title">What you can do:</h3><div>${errorInfo.details}</div></div>`
     : "";
 
   // Use button text from server response or fallback to default
-  const buttonText = (dynamicContent && dynamicContent.buttonText) || messages.buttons.tryAgain;
+  const buttonText =
+    (dynamicContent && dynamicContent.buttonText) || messages.buttons.tryAgain;
 
   showDialog({
     dialogClass: "error-dialog",
@@ -529,48 +533,59 @@ if (typeof document !== "undefined") {
       // Set a more flexible pattern that allows common US phone number formats
       phoneField.setAttribute(
         "pattern",
-        "^(\\+?1[-. ]?)?\\(?[2-9][0-9]{2}\\)?[-. ]?[2-9][0-9]{2}[-. ]?[0-9]{4}$|^[2-9][0-9]{9}$"
+        "^(\\+?1[-. ]?)?\\(?[2-9][0-9]{2}\\)?[-. ]?[2-9][0-9]{2}[-. ]?[0-9]{4}$|^[2-9][0-9]{9}$",
       );
       phoneField.setAttribute(
         "title",
-        "Please enter a valid US phone number (e.g., 5551234567, (555) 123-4567, 555-123-4567, or 555.123.4567)"
+        "Please enter a valid US phone number (e.g., 5551234567, (555) 123-4567, 555-123-4567, or 555.123.4567)",
       );
-      
+
       // Clear custom validity on input to allow revalidation
-      phoneField.addEventListener('input', function(e) {
+      phoneField.addEventListener("input", function (e) {
         // Allow only digits, spaces, hyphens, dots, parentheses, and plus sign
-        const value = e.target.value.replace(/[^0-9\s\-\.\(\)\+]/g, '');
+        const value = e.target.value.replace(/[^0-9\s\-\.\(\)\+]/g, "");
         if (e.target.value !== value) {
           e.target.value = value;
         }
-        
+
         // Reset custom validity to allow HTML5 validation to work
-        e.target.setCustomValidity('');
+        e.target.setCustomValidity("");
       });
-      
+
       // Set custom validity message on invalid event
-      phoneField.addEventListener('invalid', function(e) {
-        e.target.setCustomValidity('Please enter a valid US phone number (e.g., 5551234567, (555) 123-4567, or 555-123-4567)');
+      phoneField.addEventListener("invalid", function (e) {
+        e.target.setCustomValidity(
+          "Please enter a valid US phone number (e.g., 5551234567, (555) 123-4567, or 555-123-4567)",
+        );
       });
-      
+
       // Validate on blur for immediate feedback
-      phoneField.addEventListener('blur', function(e) {
+      phoneField.addEventListener("blur", function (e) {
         if (e.target.value) {
-          const pattern = /^((\+?1[-. ]?)?\(?[2-9][0-9]{2}\)?[-. ]?[2-9][0-9]{2}[-. ]?[0-9]{4})|([2-9][0-9]{9})$/;
+          const pattern =
+            /^((\+?1[-. ]?)?\(?[2-9][0-9]{2}\)?[-. ]?[2-9][0-9]{2}[-. ]?[0-9]{4})|([2-9][0-9]{9})$/;
           if (!pattern.test(e.target.value)) {
-            e.target.setCustomValidity('Please enter a valid US phone number (e.g., 5551234567, (555) 123-4567, or 555-123-4567)');
+            e.target.setCustomValidity(
+              "Please enter a valid US phone number (e.g., 5551234567, (555) 123-4567, or 555-123-4567)",
+            );
             e.target.reportValidity();
           } else {
-            e.target.setCustomValidity('');
+            e.target.setCustomValidity("");
           }
         }
       });
-      
+
       // Prevent non-numeric keys from being pressed (except formatting characters)
-      phoneField.addEventListener('keypress', function(e) {
+      phoneField.addEventListener("keypress", function (e) {
         const char = String.fromCharCode(e.which);
         // Allow numbers, space, dash, dot, parentheses, plus, backspace, delete, arrow keys
-        if (!/[0-9\s\-\.\(\)\+]/.test(char) && !e.ctrlKey && !e.metaKey && e.keyCode !== 8 && e.keyCode !== 46) {
+        if (
+          !/[0-9\s\-\.\(\)\+]/.test(char) &&
+          !e.ctrlKey &&
+          !e.metaKey &&
+          e.keyCode !== 8 &&
+          e.keyCode !== 46
+        ) {
           e.preventDefault();
         }
       });

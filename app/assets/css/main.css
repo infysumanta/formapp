@@ -277,6 +277,7 @@ input[type="checkbox"] {
   color: #1f2937 !important;
   font-weight: 600 !important;
   line-height: 1.4 !important;
+  text-align: center !important;
 }
 
 #form-dialog .dialog-message {
@@ -336,14 +337,14 @@ input[type="checkbox"] {
 
 /* Spinner */
 .spinner {
-  display: inline-block !important;
-  width: 20px !important;
-  height: 20px !important;
-  border: 2px solid #e5e7eb !important;
-  border-top: 2px solid #6366f1 !important;
+  display: block !important;
+  width: 2rem !important;
+  height: 2rem !important;
+  border: 3px solid #e5e7eb !important;
+  border-top: 3px solid #6366f1 !important;
   border-radius: 50% !important;
   animation: spin 1s linear infinite !important;
-  margin-right: 0.75rem !important;
+  margin: 0 auto !important;
 }
 
 @keyframes spin {
@@ -587,10 +588,7 @@ div[data-editorblocktype="Captcha"]
 
 /* Original dialog styles for existing dialogs */
 .dialog-title {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+  text-align: center;
   font-size: 1.125rem;
   font-weight: 600;
   margin-bottom: 1rem;
@@ -604,12 +602,14 @@ div[data-editorblocktype="Captcha"]
 }
 
 .spinner {
-  width: 1.5rem;
-  height: 1.5rem;
-  border: 2px solid #e5e7eb;
-  border-top: 2px solid #3b82f6;
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid #e5e7eb;
+  border-top: 3px solid #3b82f6;
   border-radius: 50%;
   animation: spin 1s linear infinite;
+  margin: 0 auto;
+  display: block;
 }
 
 @keyframes spin {
