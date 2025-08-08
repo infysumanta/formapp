@@ -59,6 +59,24 @@ const messages = {
     buttonText: "OK",
   },
   errors: {
+    payer_not_found: {
+      title: "Insurance Provider Not Found",
+      description:
+        "We couldn't find your insurance provider in our system. Our support team will contact you to assist with your eligibility.",
+      details: null,
+    },
+    eligibility_diagnosis_not_found: {
+      title: "Diagnosis Not Eligible",
+      description:
+        "Your application is under review. Our support team will contact you to discuss your options.",
+      details: null,
+    },
+    zip_code_not_found: {
+      title: "Service Area Not Available",
+      description:
+        "Your application is under review. Our support team will contact you to discuss your options.",
+      details: null,
+    },
     network_error: {
       title: "Connection Problem",
       description:
@@ -108,6 +126,16 @@ const formFetch = async (payload) => {
     }
 
     // Handle specific HTTP status codes
+    if (response.status === 400) {
+      const errorData = await response.json().catch(() => ({}));
+      return {
+        success: false,
+        error: "validation_error",
+        status: 400,
+        data: errorData,
+      };
+    }
+
     if (response.status === 500) {
       const errorText = await response.text().catch(() => '{}');
       let errorData = {};
@@ -185,40 +213,93 @@ const processCaregiverField = (payload) => {
   }
 };
 
-// Show progress dialog
-const showProgressDialog = () => {
-  // Remove any existing dialog
+// Utility functions for dialog management
+const removeExistingDialog = () => {
   const existingDialog = document.getElementById("form-dialog");
   if (existingDialog) {
     existingDialog.remove();
   }
-
-  // Create progress dialog
-  const dialog = document.createElement("div");
-  dialog.id = "form-dialog";
-  dialog.innerHTML = `
-    <div class="dialog-overlay">
-      <div class="dialog-content">
-        <div class="dialog-title">
-          <div class="spinner"></div>
-          ${messages.progress.title}
-        </div>
-        <p class="dialog-message">${messages.progress.message}</p>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(dialog);
 };
 
-// Enhanced success message
-const showSuccessMessage = (payload) => {
-  // Remove existing dialog
-  const existingDialog = document.getElementById("form-dialog");
-  if (existingDialog) {
-    existingDialog.remove();
-  }
+const createDialogElement = (content) => {
+  const dialog = document.createElement("div");
+  dialog.id = "form-dialog";
+  dialog.innerHTML = `<div class="dialog-overlay"><div class="dialog-content">${content}</div></div>`;
+  return dialog;
+};
 
-  // Extract email from payload and construct proper URL
+const createIcon = (type) => {
+  const icons = {
+    success:
+      '<svg class="dialog-icon success-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>',
+    error:
+      '<svg class="dialog-icon error-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>',
+    spinner: '<div class="spinner"></div>',
+    errorIcon: '<div class="error-icon"></div>',
+  };
+  return icons[type] || "";
+};
+
+const createButtons = (buttons) => {
+  if (!buttons || buttons.length === 0) return "";
+
+  const buttonElements = buttons
+    .map(
+      (btn) =>
+        `<button ${btn.id ? `id="${btn.id}"` : ""} ${
+          btn.onclick ? `onclick="${btn.onclick}"` : ""
+        } class="dialog-button ${btn.className || "dialog-button-primary"}">${
+          btn.text
+        }</button>`,
+    )
+    .join("");
+
+  return `<div class="dialog-buttons">${buttonElements}</div>`;
+};
+
+const showDialog = (config) => {
+  removeExistingDialog();
+
+  const iconHtml = config.icon
+    ? `<div class="dialog-icon-container ${
+        config.iconContainer || ""
+      }">${createIcon(config.icon)}</div>`
+    : "";
+  const titleHtml = config.title
+    ? `<${config.titleTag || "div"} class="${
+        config.titleClass || "dialog-title"
+      }">${iconHtml}${config.title}</${config.titleTag || "div"}>`
+    : "";
+  const messageHtml = config.message
+    ? `<p class="${config.messageClass || "dialog-message"}">${
+        config.message
+      }</p>`
+    : "";
+  const detailsHtml = config.details || "";
+  const buttonsHtml = createButtons(config.buttons);
+
+  const content = `${
+    config.dialogClass ? `<div class="${config.dialogClass}">` : ""
+  }${titleHtml}${messageHtml}${detailsHtml}${buttonsHtml}${
+    config.dialogClass ? "</div>" : ""
+  }`;
+
+  const dialog = createDialogElement(content);
+  document.body.appendChild(dialog);
+
+  return dialog;
+};
+
+// Optimized dialog functions using shared utilities
+const showProgressDialog = () => {
+  showDialog({
+    title: messages.progress.title,
+    message: messages.progress.message,
+    icon: "spinner",
+  });
+};
+
+const showSuccessMessage = (payload) => {
   const emailField = payload?.fields?.find(
     (field) => field.key === "emailaddress1",
   );
@@ -228,42 +309,31 @@ const showSuccessMessage = (payload) => {
   url.searchParams.set("preQualEmail", userEmail);
   const redirectUrl = url.toString();
 
-  // Create success dialog with dynamic email replacement
   const successMessage = messages.success.message.replace(
     "{userEmail}",
     userEmail,
   );
-  const dialog = document.createElement("div");
-  dialog.id = "form-dialog";
-  dialog.innerHTML = `
-    <div class="dialog-overlay">
-      <div class="dialog-content success-dialog">
-        <div class="dialog-icon-container success-icon-container">
-          <svg class="dialog-icon success-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
-        <h1 class="dialog-title-large">${messages.success.title}</h1>
-        <p class="dialog-message-large">${successMessage}</p>
-        <div class="dialog-buttons">
-          <button onclick="window.location.href='${redirectUrl}'" class="dialog-button dialog-button-success">
-            ${messages.success.buttonText}
-          </button>
-        </div>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(dialog);
+
+  showDialog({
+    dialogClass: "success-dialog",
+    title: messages.success.title,
+    titleTag: "h1",
+    titleClass: "dialog-title-large",
+    message: successMessage,
+    messageClass: "dialog-message-large",
+    icon: "success",
+    iconContainer: "success-icon-container",
+    buttons: [
+      {
+        text: messages.success.buttonText,
+        onclick: `window.location.href='${redirectUrl}'`,
+        className: "dialog-button-success",
+      },
+    ],
+  });
 };
 
-// Enhanced error message with dynamic content support
 const showErrorMessage = (errorCode = "unknown_error", dynamicContent = null) => {
-  // Remove existing dialog
-  const existingDialog = document.getElementById("form-dialog");
-  if (existingDialog) {
-    existingDialog.remove();
-  }
-
   let errorInfo;
   
   // Prioritize dynamic content from server response
@@ -277,115 +347,79 @@ const showErrorMessage = (errorCode = "unknown_error", dynamicContent = null) =>
     // Only use hardcoded messages for network/unexpected errors
     errorInfo = messages.errors[errorCode] || messages.errors.unknown_error;
   }
+  
+  const detailsHtml = errorInfo.details
+    ? `<div class="error-details"><h3 class="error-details-title">What you can do:</h3><div>${errorInfo.details}</div></div>`
+    : "";
 
   // Use button text from server response or fallback to default
   const buttonText = (dynamicContent && dynamicContent.buttonText) || messages.buttons.tryAgain;
 
-  // Create error dialog
-  const dialog = document.createElement("div");
-  dialog.id = "form-dialog";
-  dialog.innerHTML = `
-    <div class="dialog-overlay">
-      <div class="dialog-content error-dialog">
-        <div class="dialog-icon-container error-icon-container">
-          <svg class="dialog-icon error-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </div>
-        <h1 class="dialog-title-large">${errorInfo.title}</h1>
-        <p class="dialog-message-large">${errorInfo.description}</p>
-        ${
-          errorInfo.details
-            ? `<div class="error-details">
-          <h3 class="error-details-title">What you can do:</h3>
-          <div>${errorInfo.details}</div>
-        </div>`
-            : ""
-        }
-        <div class="dialog-buttons">
-          <button onclick="document.getElementById('form-dialog').remove()" class="dialog-button dialog-button-primary">
-            ${buttonText}
-          </button>
-          <button onclick="window.location.href='${formConfig.contactSupportUrl}'" class="dialog-button dialog-button-secondary">
-            ${messages.buttons.contactSupport}
-          </button>
-        </div>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(dialog);
+  showDialog({
+    dialogClass: "error-dialog",
+    title: errorInfo.title,
+    titleTag: "h1",
+    titleClass: "dialog-title-large",
+    message: errorInfo.description,
+    messageClass: "dialog-message-large",
+    icon: "error",
+    iconContainer: "error-icon-container",
+    details: detailsHtml,
+    buttons: [
+      {
+        text: buttonText,
+        onclick: "document.getElementById('form-dialog').remove()",
+        className: "dialog-button-primary",
+      },
+      {
+        text: messages.buttons.contactSupport,
+        onclick: `window.location.href='${formConfig.contactSupportUrl}'`,
+        className: "dialog-button-secondary",
+      },
+    ],
+  });
 };
 
-// Show rejection message
 const showRejectionMessage = () => {
-  // Remove existing dialog
-  const existingDialog = document.getElementById("form-dialog");
-  if (existingDialog) {
-    existingDialog.remove();
-  }
-
-  // Create rejection dialog
-  const dialog = document.createElement("div");
-  dialog.id = "form-dialog";
-  dialog.innerHTML = `
-    <div class="dialog-overlay">
-      <div class="dialog-content">
-        <div class="dialog-title">
-          <div class="error-icon"></div>
-          ${messages.rejection.title}
-        </div>
-        <p class="dialog-message">${messages.rejection.message}</p>
-        <div class="dialog-buttons">
-          <button onclick="document.getElementById('form-dialog').remove()" class="dialog-button dialog-button-secondary">
-            ${messages.rejection.buttonText}
-          </button>
-        </div>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(dialog);
+  showDialog({
+    title: messages.rejection.title,
+    message: messages.rejection.message,
+    icon: "errorIcon",
+    buttons: [
+      {
+        text: messages.rejection.buttonText,
+        onclick: "document.getElementById('form-dialog').remove()",
+        className: "dialog-button-secondary",
+      },
+    ],
+  });
 };
 
-// Show confirmation dialog
 const showConfirmationDialog = () => {
   return new Promise((resolve) => {
-    // Remove any existing dialog
-    const existingDialog = document.getElementById("form-dialog");
-    if (existingDialog) {
-      existingDialog.remove();
-    }
-
-    // Create confirmation dialog
-    const dialog = document.createElement("div");
-    dialog.id = "form-dialog";
-    dialog.innerHTML = `
-      <div class="dialog-overlay">
-        <div class="dialog-content">
-          <div class="dialog-title">
-            ${messages.confirmation.title}
-          </div>
-          <p class="dialog-message">${messages.confirmation.message}</p>
-          <div class="dialog-buttons">
-            <button id="confirm-yes" class="dialog-button dialog-button-primary">
-              ${messages.confirmation.confirmText}
-            </button>
-            <button id="confirm-no" class="dialog-button dialog-button-secondary">
-              ${messages.confirmation.cancelText}
-            </button>
-          </div>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(dialog);
-
-    // Add event listeners
-    document.getElementById("confirm-yes").addEventListener("click", () => {
-      resolve(true);
+    showDialog({
+      title: messages.confirmation.title,
+      message: messages.confirmation.message,
+      buttons: [
+        {
+          id: "confirm-yes",
+          text: messages.confirmation.confirmText,
+          className: "dialog-button-primary",
+        },
+        {
+          id: "confirm-no",
+          text: messages.confirmation.cancelText,
+          className: "dialog-button-secondary",
+        },
+      ],
     });
 
-    document.getElementById("confirm-no").addEventListener("click", () => {
-      resolve(false);
-    });
+    document
+      .getElementById("confirm-yes")
+      .addEventListener("click", () => resolve(true));
+    document
+      .getElementById("confirm-no")
+      .addEventListener("click", () => resolve(false));
   });
 };
 
@@ -406,14 +440,35 @@ const submitFormHandler = async (payload) => {
   window.processPayorField(payload);
   window.processCaregiverField(payload);
 
+  const acesIseligiblediagnosis = payload.fields.find(
+    (item) => item.key === "aces_iseligiblediagnosis",
+  );
+
+  const acesPayorfound = payload.fields.find(
+    (item) => item.key === "aces_payorfound",
+  );
+
   // Use the enhanced fetch function
   try {
     const result = await window.formFetch(payload);
     if (result.success) {
       showSuccessMessage(payload);
     } else {
-      // Handle 500 errors with dynamic content from server
-      if (result.status === 500 && result.data) {
+      let errorCode = "";
+      if (result.status === 400) {
+        if (acesPayorfound && acesPayorfound.value === "0") {
+          errorCode = "payer_not_found";
+        } else if (
+          acesIseligiblediagnosis &&
+          acesIseligiblediagnosis.value === "0"
+        ) {
+          errorCode = "eligibility_diagnosis_not_found";
+        } else {
+          errorCode = "zip_code_not_found";
+        }
+        showErrorMessage(errorCode);
+      } else if (result.status === 500 && result.data) {
+        // Handle 500 errors with dynamic content from server
         showErrorMessage("server_error", result.data);
       } else {
         // Fallback for other errors

@@ -320,6 +320,22 @@
             };
           }
 
+          if (response.status === 500) {
+            const errorText = await response.text().catch(() => '{}');
+            let errorData = {};
+            try {
+              errorData = JSON.parse(errorText);
+            } catch (parseError) {
+              errorData = { Message: errorText };
+            }
+            return {
+              success: false,
+              error: "server_error",
+              status: 500,
+              data: errorData,
+            };
+          }
+
           return {
             success: false,
             error: "http_error",
@@ -503,12 +519,27 @@
         });
       };
 
-      const showErrorMessage = (errorCode = "unknown_error") => {
-        const errorInfo =
-          messages.errors[errorCode] || messages.errors.unknown_error;
+      const showErrorMessage = (errorCode = "unknown_error", dynamicContent = null) => {
+        let errorInfo;
+        
+        // Prioritize dynamic content from server response
+        if (dynamicContent && dynamicContent.Message) {
+          errorInfo = {
+            title: dynamicContent.title || "Application Status",
+            description: dynamicContent.Message,
+            details: null,
+          };
+        } else {
+          // Only use hardcoded messages for network/unexpected errors
+          errorInfo = messages.errors[errorCode] || messages.errors.unknown_error;
+        }
+        
         const detailsHtml = errorInfo.details
           ? `<div class="error-details"><h3 class="error-details-title">What you can do:</h3><div>${errorInfo.details}</div></div>`
           : "";
+
+        // Use button text from server response or fallback to default
+        const buttonText = (dynamicContent && dynamicContent.buttonText) || messages.buttons.tryAgain;
 
         showDialog({
           dialogClass: "error-dialog",
@@ -522,7 +553,7 @@
           details: detailsHtml,
           buttons: [
             {
-              text: messages.buttons.tryAgain,
+              text: buttonText,
               onclick: "document.getElementById('form-dialog').remove()",
               className: "dialog-button-primary",
             },
@@ -621,12 +652,14 @@
               } else {
                 errorCode = "zip_code_not_found";
               }
+              showErrorMessage(errorCode);
+            } else if (result.status === 500 && result.data) {
+              // Handle 500 errors with dynamic content from server
+              showErrorMessage("server_error", result.data);
             } else {
-              errorCode = "unknown_error";
+              // Fallback for other errors
+              showErrorMessage("unknown_error");
             }
-
-            // Show error dialog instead of redirecting
-            showErrorMessage(errorCode);
           }
         } catch (error) {
           console.error("Unexpected error during form submission:", error);

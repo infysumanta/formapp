@@ -136,6 +136,22 @@ const formFetch = async (payload) => {
       };
     }
 
+    if (response.status === 500) {
+      const errorText = await response.text().catch(() => '{}');
+      let errorData = {};
+      try {
+        errorData = JSON.parse(errorText);
+      } catch (parseError) {
+        errorData = { Message: errorText };
+      }
+      return {
+        success: false,
+        error: "server_error",
+        status: 500,
+        data: errorData,
+      };
+    }
+
     return {
       success: false,
       error: "http_error",
@@ -317,11 +333,27 @@ const showSuccessMessage = (payload) => {
   });
 };
 
-const showErrorMessage = (errorCode = "unknown_error") => {
-  const errorInfo = messages.errors[errorCode] || messages.errors.unknown_error;
+const showErrorMessage = (errorCode = "unknown_error", dynamicContent = null) => {
+  let errorInfo;
+  
+  // Prioritize dynamic content from server response
+  if (dynamicContent && dynamicContent.Message) {
+    errorInfo = {
+      title: dynamicContent.title || "Application Status",
+      description: dynamicContent.Message,
+      details: null,
+    };
+  } else {
+    // Only use hardcoded messages for network/unexpected errors
+    errorInfo = messages.errors[errorCode] || messages.errors.unknown_error;
+  }
+  
   const detailsHtml = errorInfo.details
     ? `<div class="error-details"><h3 class="error-details-title">What you can do:</h3><div>${errorInfo.details}</div></div>`
     : "";
+
+  // Use button text from server response or fallback to default
+  const buttonText = (dynamicContent && dynamicContent.buttonText) || messages.buttons.tryAgain;
 
   showDialog({
     dialogClass: "error-dialog",
@@ -335,7 +367,7 @@ const showErrorMessage = (errorCode = "unknown_error") => {
     details: detailsHtml,
     buttons: [
       {
-        text: messages.buttons.tryAgain,
+        text: buttonText,
         onclick: "document.getElementById('form-dialog').remove()",
         className: "dialog-button-primary",
       },
@@ -434,12 +466,14 @@ const submitFormHandler = async (payload) => {
         } else {
           errorCode = "zip_code_not_found";
         }
+        showErrorMessage(errorCode);
+      } else if (result.status === 500 && result.data) {
+        // Handle 500 errors with dynamic content from server
+        showErrorMessage("server_error", result.data);
       } else {
-        errorCode = "unknown_error";
+        // Fallback for other errors
+        showErrorMessage("unknown_error");
       }
-
-      // Show error dialog instead of redirecting
-      showErrorMessage(errorCode);
     }
   } catch (error) {
     console.error("Unexpected error during form submission:", error);
@@ -541,6 +575,26 @@ if (typeof document !== "undefined") {
         }
       });
     });
+    const dateOfBirthField = document.querySelector(
+      'input[name="aces_birthdate"]',
+    );
+    if (dateOfBirthField) {
+      dateOfBirthField.setAttribute(
+        "oninvalid",
+        "setCustomValidity('Please enter a valid date of birth.')",
+      );
+      dateOfBirthField.setAttribute("oninput", "setCustomValidity('')");
+      const oneYearAgo = new Date();
+      oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+      dateOfBirthField.setAttribute(
+        "max",
+        oneYearAgo.toISOString().split("T")[0],
+      );
+      dateOfBirthField.setAttribute(
+        "onchange",
+        "if (this.valueAsDate > new Date()) { this.setCustomValidity('Date of birth cannot be in the future.'); } else { this.setCustomValidity(''); }",
+      );
+    }
   });
   document.addEventListener("d365mkt-formrender", function () {});
   document.addEventListener("d365mkt-formsubmit", function (event) {
