@@ -18,7 +18,7 @@
       :data-form-id="formConfig.formId"
       :data-form-api-url="`${formConfig.baseUrl}/orgs/${formConfig.orgId}/landingpageforms`"
       :data-cached-form-url="`https://assets-usa.mkt.dynamics.com/${formConfig.orgId}/digitalassets/forms/${formConfig.formId}`"
-    ></div>
+    />
   </div>
 </template>
 
@@ -59,34 +59,16 @@ const messages = {
     buttonText: "OK",
   },
   errors: {
-    payer_not_found: {
-      title: "Insurance Provider Not Found",
-      description:
-        "We couldn't find your insurance provider in our system. Our support team will contact you to assist with your eligibility.",
-      details: null,
-    },
-    eligibility_diagnosis_not_found: {
-      title: "Diagnosis Not Eligible",
+    application_under_review: {
+      title: "Thank You!",
       description:
         "Your application is under review. Our support team will contact you to discuss your options.",
       details: null,
     },
-    zip_code_not_found: {
-      title: "Service Area Not Available",
+    server_error: {
+      title: "Oops!",
       description:
-        "Your application is under review. Our support team will contact you to discuss your options.",
-      details: null,
-    },
-    network_error: {
-      title: "Connection Problem",
-      description:
-        "There was a network error while submitting your information. Please try submitting again.",
-      details: null,
-    },
-    unexpected_error: {
-      title: "Unexpected Error",
-      description:
-        "An unexpected error occurred while processing your submission. Please try submitting again.",
+        "Something went wrong on our end. Please try again in a few minutes or contact support if the problem persists.",
       details: null,
     },
     unknown_error: {
@@ -137,18 +119,30 @@ const formFetch = async (payload) => {
     }
 
     if (response.status === 500) {
-      const errorText = await response.text().catch(() => '{}');
+      const errorText = await response.text().catch(() => "{}");
       let errorData = {};
       try {
         errorData = JSON.parse(errorText);
       } catch (parseError) {
         errorData = { Message: errorText };
       }
+      console.error("Server error (500):", errorData);
       return {
         success: false,
         error: "server_error",
         status: 500,
         data: errorData,
+      };
+    }
+
+    if (response.status === 504) {
+      const errorText = await response.text().catch(() => "Gateway Timeout");
+      console.error("Gateway timeout (504):", errorText);
+      return {
+        success: false,
+        error: "server_error",
+        status: 504,
+        data: { Message: "Gateway timeout - please try again later" },
       };
     }
 
@@ -329,13 +323,21 @@ const showSuccessMessage = (payload) => {
         onclick: `window.location.href='${redirectUrl}'`,
         className: "dialog-button-success",
       },
+      {
+        text: "Close",
+        onclick: "document.getElementById('form-dialog').remove()",
+        className: "dialog-button-secondary",
+      },
     ],
   });
 };
 
-const showErrorMessage = (errorCode = "unknown_error", dynamicContent = null) => {
+const showErrorMessage = (
+  errorCode = "unknown_error",
+  dynamicContent = null,
+) => {
   let errorInfo;
-  
+
   // Prioritize dynamic content from server response
   if (dynamicContent && dynamicContent.Message) {
     errorInfo = {
@@ -347,13 +349,14 @@ const showErrorMessage = (errorCode = "unknown_error", dynamicContent = null) =>
     // Only use hardcoded messages for network/unexpected errors
     errorInfo = messages.errors[errorCode] || messages.errors.unknown_error;
   }
-  
+
   const detailsHtml = errorInfo.details
     ? `<div class="error-details"><h3 class="error-details-title">What you can do:</h3><div>${errorInfo.details}</div></div>`
     : "";
 
   // Use button text from server response or fallback to default
-  const buttonText = (dynamicContent && dynamicContent.buttonText) || messages.buttons.tryAgain;
+  const buttonText =
+    (dynamicContent && dynamicContent.buttonText) || messages.buttons.tryAgain;
 
   showDialog({
     dialogClass: "error-dialog",
@@ -371,10 +374,27 @@ const showErrorMessage = (errorCode = "unknown_error", dynamicContent = null) =>
         onclick: "document.getElementById('form-dialog').remove()",
         className: "dialog-button-primary",
       },
+    ],
+  });
+};
+
+const showApplicationReviewMessage = () => {
+  const reviewInfo = messages.errors.application_under_review;
+
+  showDialog({
+    dialogClass: "success-dialog",
+    title: reviewInfo.title,
+    titleTag: "h1",
+    titleClass: "dialog-title-large",
+    message: reviewInfo.description,
+    messageClass: "dialog-message-large",
+    icon: "success",
+    iconContainer: "success-icon-container",
+    buttons: [
       {
-        text: messages.buttons.contactSupport,
-        onclick: `window.location.href='${formConfig.contactSupportUrl}'`,
-        className: "dialog-button-secondary",
+        text: "OK",
+        onclick: "document.getElementById('form-dialog').remove()",
+        className: "dialog-button-success",
       },
     ],
   });
@@ -440,36 +460,23 @@ const submitFormHandler = async (payload) => {
   window.processPayorField(payload);
   window.processCaregiverField(payload);
 
-  const acesIseligiblediagnosis = payload.fields.find(
-    (item) => item.key === "aces_iseligiblediagnosis",
-  );
-
-  const acesPayorfound = payload.fields.find(
-    (item) => item.key === "aces_payorfound",
-  );
-
   // Use the enhanced fetch function
   try {
     const result = await window.formFetch(payload);
     if (result.success) {
       showSuccessMessage(payload);
     } else {
-      let errorCode = "";
       if (result.status === 400) {
-        if (acesPayorfound && acesPayorfound.value === "0") {
-          errorCode = "payer_not_found";
-        } else if (
-          acesIseligiblediagnosis &&
-          acesIseligiblediagnosis.value === "0"
-        ) {
-          errorCode = "eligibility_diagnosis_not_found";
+        // All 400 errors show success-style dialog but no redirect
+        showApplicationReviewMessage();
+      } else if (result.status === 500 || result.status === 504) {
+        // Handle server errors (500) and gateway timeouts (504)
+        if (result.data && result.data.Message) {
+          showErrorMessage("server_error", result.data);
         } else {
-          errorCode = "zip_code_not_found";
+          // No message from server, show generic server error
+          showErrorMessage("server_error");
         }
-        showErrorMessage(errorCode);
-      } else if (result.status === 500 && result.data) {
-        // Handle 500 errors with dynamic content from server
-        showErrorMessage("server_error", result.data);
       } else {
         // Fallback for other errors
         showErrorMessage("unknown_error");
@@ -496,6 +503,7 @@ if (typeof window !== "undefined") {
   window.showProgressDialog = showProgressDialog;
   window.showSuccessMessage = showSuccessMessage;
   window.showErrorMessage = showErrorMessage;
+  window.showApplicationReviewMessage = showApplicationReviewMessage;
   window.showRejectionMessage = showRejectionMessage;
 }
 
@@ -504,6 +512,16 @@ useHead({
     {
       src: "https://cxppusa1formui01cdnsa01-endpoint.azureedge.net/usa/FormLoader/FormLoader.bundle.js",
       defer: true,
+    },
+    {
+      src: "https://cdn.jsdelivr.net/npm/intl-tel-input@24.5.0/build/js/intlTelInput.min.js",
+      defer: true,
+    },
+  ],
+  link: [
+    {
+      rel: "stylesheet",
+      href: "https://cdn.jsdelivr.net/npm/intl-tel-input@24.5.0/build/css/intlTelInput.css",
     },
   ],
 });
@@ -523,58 +541,176 @@ if (typeof document !== "undefined") {
       emailField.setAttribute("oninput", "setCustomValidity('')");
     }
 
-    // Add phone validation and pattern to tel fields
-    const phoneFields = document.querySelectorAll('input[type="tel"]');
-    phoneFields.forEach((phoneField) => {
-      // Set a more flexible pattern that allows common US phone number formats
-      phoneField.setAttribute(
-        "pattern",
-        "^(\\+?1[-. ]?)?\\(?[2-9][0-9]{2}\\)?[-. ]?[2-9][0-9]{2}[-. ]?[0-9]{4}$|^[2-9][0-9]{9}$"
-      );
-      phoneField.setAttribute(
-        "title",
-        "Please enter a valid US phone number (e.g., 5551234567, (555) 123-4567, 555-123-4567, or 555.123.4567)"
-      );
-      
-      // Clear custom validity on input to allow revalidation
-      phoneField.addEventListener('input', function(e) {
-        // Allow only digits, spaces, hyphens, dots, parentheses, and plus sign
-        const value = e.target.value.replace(/[^0-9\s\-\.\(\)\+]/g, '');
-        if (e.target.value !== value) {
-          e.target.value = value;
+    // Initialize intl-tel-input for phone fields with country flags
+    const initializePhoneFields = () => {
+      const phoneFields = document.querySelectorAll('input[type="tel"]');
+
+      phoneFields.forEach((phoneField) => {
+        // Skip if already initialized
+        if (phoneField.hasAttribute("data-intl-tel-input-initialized")) {
+          return;
         }
-        
-        // Reset custom validity to allow HTML5 validation to work
-        e.target.setCustomValidity('');
-      });
-      
-      // Set custom validity message on invalid event
-      phoneField.addEventListener('invalid', function(e) {
-        e.target.setCustomValidity('Please enter a valid US phone number (e.g., 5551234567, (555) 123-4567, or 555-123-4567)');
-      });
-      
-      // Validate on blur for immediate feedback
-      phoneField.addEventListener('blur', function(e) {
-        if (e.target.value) {
-          const pattern = /^((\+?1[-. ]?)?\(?[2-9][0-9]{2}\)?[-. ]?[2-9][0-9]{2}[-. ]?[0-9]{4})|([2-9][0-9]{9})$/;
-          if (!pattern.test(e.target.value)) {
-            e.target.setCustomValidity('Please enter a valid US phone number (e.g., 5551234567, (555) 123-4567, or 555-123-4567)');
-            e.target.reportValidity();
-          } else {
-            e.target.setCustomValidity('');
+
+        try {
+          // Initialize intl-tel-input for US-only usage
+          const iti = window.intlTelInput(phoneField, {
+            initialCountry: "us",
+            onlyCountries: ["us"],
+            utilsScript:
+              "https://cdn.jsdelivr.net/npm/intl-tel-input@24.5.0/build/js/utils.js",
+            formatOnDisplay: true,
+            separateDialCode: true,
+            nationalMode: true,
+            autoPlaceholder: "aggressive",
+            placeholderNumberType: "MOBILE",
+            showFlags: true,
+            allowDropdown: false,
+            dropdownContainer: document.body,
+          });
+
+          // Mark as initialized
+          phoneField.setAttribute("data-intl-tel-input-initialized", "true");
+
+          // Store ITI instance on the element
+          phoneField.itiInstance = iti;
+
+          // Custom validation
+          const validatePhone = () => {
+            const isValid = iti.isValidNumber();
+            const errorCode = iti.getValidationError();
+
+            if (phoneField.value.trim() === "") {
+              phoneField.setCustomValidity("");
+              return true;
+            }
+
+            if (!isValid) {
+              let errorMessage = "Please enter a valid US phone number";
+
+              // Provide specific error messages for US phone numbers using numeric error codes
+              // Error codes: 0=INVALID_COUNTRY_CODE, 1=TOO_SHORT, 2=TOO_LONG, 3=NOT_A_NUMBER, 4=IS_POSSIBLE_LOCAL_ONLY
+              switch (errorCode) {
+                case 1: // TOO_SHORT
+                  errorMessage =
+                    "Phone number is too short. US phone numbers need 10 digits.";
+                  break;
+                case 2: // TOO_LONG
+                  errorMessage =
+                    "Phone number is too long. US phone numbers need 10 digits.";
+                  break;
+                case 4: // IS_POSSIBLE_LOCAL_ONLY
+                  errorMessage =
+                    "Please enter a valid 10-digit US phone number (e.g., 555-123-4567).";
+                  break;
+                default:
+                  errorMessage =
+                    "Please enter a valid US phone number (e.g., 555-123-4567).";
+              }
+
+              phoneField.setCustomValidity(errorMessage);
+              return false;
+            }
+
+            phoneField.setCustomValidity("");
+            return true;
+          };
+
+          // Restrict input to numbers only and validate
+          phoneField.addEventListener("input", (e) => {
+            // Remove any non-numeric characters except spaces, dashes, parentheses for formatting
+            let value = e.target.value.replace(/[^\d\s\-\(\)]/g, "");
+
+            // Update the field value if it was modified
+            if (e.target.value !== value) {
+              e.target.value = value;
+            }
+
+            validatePhone();
+          });
+
+          // Validate on change
+          phoneField.addEventListener("change", () => {
+            if (phoneField.value.trim() !== "") {
+              validatePhone();
+              if (!iti.isValidNumber()) {
+                phoneField.reportValidity();
+              }
+            }
+          });
+
+          // Validate on blur
+          phoneField.addEventListener("blur", () => {
+            if (phoneField.value.trim() !== "") {
+              validatePhone();
+              if (!iti.isValidNumber()) {
+                phoneField.reportValidity();
+              }
+            }
+          });
+
+          // Validate on country change
+          phoneField.addEventListener("countrychange", () => {
+            validatePhone();
+          });
+
+          // Before form submission, ensure we have the full international number
+          const form = phoneField.closest("form");
+          if (form) {
+            form.addEventListener("submit", () => {
+              if (iti.isValidNumber()) {
+                // Store the full international number for form submission
+                phoneField.value = iti.getNumber();
+              }
+            });
           }
+        } catch (error) {
+          console.warn(
+            "Failed to initialize intl-tel-input for phone field:",
+            error,
+          );
+
+          // Fallback to basic US phone validation if intl-tel-input fails
+          phoneField.setAttribute(
+            "pattern",
+            "^[2-9][0-9]{2}[2-9][0-9]{2}[0-9]{4}$|^\\([2-9][0-9]{2}\\)[\\s-]?[2-9][0-9]{2}[\\s-]?[0-9]{4}$|^[2-9][0-9]{2}[\\s.-][2-9][0-9]{2}[\\s.-][0-9]{4}$",
+          );
+          phoneField.setAttribute(
+            "title",
+            "Please enter a valid US phone number (e.g., 555-123-4567)",
+          );
+
+          phoneField.addEventListener("input", function (e) {
+            // Only allow digits, spaces, dashes, and parentheses
+            const value = e.target.value.replace(/[^\d\s\-\(\)]/g, "");
+            if (e.target.value !== value) {
+              e.target.value = value;
+            }
+            e.target.setCustomValidity("");
+          });
+
+          phoneField.addEventListener("invalid", function (e) {
+            e.target.setCustomValidity(
+              "Please enter a valid US phone number (e.g., 555-123-4567)",
+            );
+          });
         }
       });
-      
-      // Prevent non-numeric keys from being pressed (except formatting characters)
-      phoneField.addEventListener('keypress', function(e) {
-        const char = String.fromCharCode(e.which);
-        // Allow numbers, space, dash, dot, parentheses, plus, backspace, delete, arrow keys
-        if (!/[0-9\s\-\.\(\)\+]/.test(char) && !e.ctrlKey && !e.metaKey && e.keyCode !== 8 && e.keyCode !== 46) {
-          e.preventDefault();
+    };
+
+    // Initialize immediately if intl-tel-input is already loaded
+    if (typeof window.intlTelInput !== "undefined") {
+      initializePhoneFields();
+    } else {
+      // Wait for intl-tel-input to load
+      const checkForIntlTelInput = () => {
+        if (typeof window.intlTelInput !== "undefined") {
+          initializePhoneFields();
+        } else {
+          setTimeout(checkForIntlTelInput, 100);
         }
-      });
-    });
+      };
+      checkForIntlTelInput();
+    }
     const dateOfBirthField = document.querySelector(
       'input[name="aces_birthdate"]',
     );
