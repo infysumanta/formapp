@@ -583,19 +583,18 @@ if (typeof document !== "undefined") {
             if (!isValid) {
               let errorMessage = "Please enter a valid US phone number";
 
-              // Provide specific error messages for US phone numbers
+              // Provide specific error messages for US phone numbers using numeric error codes
+              // Error codes: 0=INVALID_COUNTRY_CODE, 1=TOO_SHORT, 2=TOO_LONG, 3=NOT_A_NUMBER, 4=IS_POSSIBLE_LOCAL_ONLY
               switch (errorCode) {
-                case window.intlTelInputUtils.validationError.TOO_SHORT:
+                case 1: // TOO_SHORT
                   errorMessage =
                     "Phone number is too short. US phone numbers need 10 digits.";
                   break;
-                case window.intlTelInputUtils.validationError.TOO_LONG:
+                case 2: // TOO_LONG
                   errorMessage =
                     "Phone number is too long. US phone numbers need 10 digits.";
                   break;
-                case window.intlTelInputUtils.validationError
-                  .IS_POSSIBLE_LOCAL_ONLY:
-                case window.intlTelInputUtils.validationError.INVALID_LENGTH:
+                case 4: // IS_POSSIBLE_LOCAL_ONLY
                   errorMessage =
                     "Please enter a valid 10-digit US phone number (e.g., 555-123-4567).";
                   break;
@@ -612,9 +611,27 @@ if (typeof document !== "undefined") {
             return true;
           };
 
-          // Validate on input
-          phoneField.addEventListener("input", () => {
+          // Restrict input to numbers only and validate
+          phoneField.addEventListener("input", (e) => {
+            // Remove any non-numeric characters except spaces, dashes, parentheses for formatting
+            let value = e.target.value.replace(/[^\d\s\-\(\)]/g, '');
+            
+            // Update the field value if it was modified
+            if (e.target.value !== value) {
+              e.target.value = value;
+            }
+            
             validatePhone();
+          });
+
+          // Validate on change
+          phoneField.addEventListener("change", () => {
+            if (phoneField.value.trim() !== "") {
+              validatePhone();
+              if (!iti.isValidNumber()) {
+                phoneField.reportValidity();
+              }
+            }
           });
 
           // Validate on blur
@@ -659,7 +676,8 @@ if (typeof document !== "undefined") {
           );
 
           phoneField.addEventListener("input", function (e) {
-            const value = e.target.value.replace(/[^0-9\\s().+-]/g, "");
+            // Only allow digits, spaces, dashes, and parentheses
+            const value = e.target.value.replace(/[^\d\s\-\(\)]/g, "");
             if (e.target.value !== value) {
               e.target.value = value;
             }
