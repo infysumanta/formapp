@@ -59,34 +59,16 @@ const messages = {
     buttonText: "OK",
   },
   errors: {
-    payer_not_found: {
-      title: "Insurance Provider Not Found",
-      description:
-        "We couldn't find your insurance provider in our system. Our support team will contact you to assist with your eligibility.",
-      details: null,
-    },
-    eligibility_diagnosis_not_found: {
-      title: "Diagnosis Not Eligible",
+    application_under_review: {
+      title: "Thank You!",
       description:
         "Your application is under review. Our support team will contact you to discuss your options.",
       details: null,
     },
-    zip_code_not_found: {
-      title: "Service Area Not Available",
+    server_error: {
+      title: "Oops!",
       description:
-        "Your application is under review. Our support team will contact you to discuss your options.",
-      details: null,
-    },
-    network_error: {
-      title: "Connection Problem",
-      description:
-        "There was a network error while submitting your information. Please try submitting again.",
-      details: null,
-    },
-    unexpected_error: {
-      title: "Unexpected Error",
-      description:
-        "An unexpected error occurred while processing your submission. Please try submitting again.",
+        "Something went wrong on our end. Please try again in a few minutes or contact support if the problem persists.",
       details: null,
     },
     unknown_error: {
@@ -144,11 +126,23 @@ const formFetch = async (payload) => {
       } catch (parseError) {
         errorData = { Message: errorText };
       }
+      console.error("Server error (500):", errorData);
       return {
         success: false,
         error: "server_error",
         status: 500,
         data: errorData,
+      };
+    }
+
+    if (response.status === 504) {
+      const errorText = await response.text().catch(() => "Gateway Timeout");
+      console.error("Gateway timeout (504):", errorText);
+      return {
+        success: false,
+        error: "server_error",
+        status: 504,
+        data: { Message: "Gateway timeout - please try again later" },
       };
     }
 
@@ -329,6 +323,11 @@ const showSuccessMessage = (payload) => {
         onclick: `window.location.href='${redirectUrl}'`,
         className: "dialog-button-success",
       },
+      {
+        text: "Close",
+        onclick: "document.getElementById('form-dialog').remove()",
+        className: "dialog-button-secondary",
+      },
     ],
   });
 };
@@ -375,10 +374,27 @@ const showErrorMessage = (
         onclick: "document.getElementById('form-dialog').remove()",
         className: "dialog-button-primary",
       },
+    ],
+  });
+};
+
+const showApplicationReviewMessage = () => {
+  const reviewInfo = messages.errors.application_under_review;
+
+  showDialog({
+    dialogClass: "success-dialog",
+    title: reviewInfo.title,
+    titleTag: "h1",
+    titleClass: "dialog-title-large",
+    message: reviewInfo.description,
+    messageClass: "dialog-message-large",
+    icon: "success",
+    iconContainer: "success-icon-container",
+    buttons: [
       {
-        text: messages.buttons.contactSupport,
-        onclick: `window.location.href='${formConfig.contactSupportUrl}'`,
-        className: "dialog-button-secondary",
+        text: "OK",
+        onclick: "document.getElementById('form-dialog').remove()",
+        className: "dialog-button-success",
       },
     ],
   });
@@ -444,36 +460,23 @@ const submitFormHandler = async (payload) => {
   window.processPayorField(payload);
   window.processCaregiverField(payload);
 
-  const acesIseligiblediagnosis = payload.fields.find(
-    (item) => item.key === "aces_iseligiblediagnosis",
-  );
-
-  const acesPayorfound = payload.fields.find(
-    (item) => item.key === "aces_payorfound",
-  );
-
   // Use the enhanced fetch function
   try {
     const result = await window.formFetch(payload);
     if (result.success) {
       showSuccessMessage(payload);
     } else {
-      let errorCode = "";
       if (result.status === 400) {
-        if (acesPayorfound && acesPayorfound.value === "0") {
-          errorCode = "payer_not_found";
-        } else if (
-          acesIseligiblediagnosis &&
-          acesIseligiblediagnosis.value === "0"
-        ) {
-          errorCode = "eligibility_diagnosis_not_found";
+        // All 400 errors show success-style dialog but no redirect
+        showApplicationReviewMessage();
+      } else if (result.status === 500 || result.status === 504) {
+        // Handle server errors (500) and gateway timeouts (504)
+        if (result.data && result.data.Message) {
+          showErrorMessage("server_error", result.data);
         } else {
-          errorCode = "zip_code_not_found";
+          // No message from server, show generic server error
+          showErrorMessage("server_error");
         }
-        showErrorMessage(errorCode);
-      } else if (result.status === 500 && result.data) {
-        // Handle 500 errors with dynamic content from server
-        showErrorMessage("server_error", result.data);
       } else {
         // Fallback for other errors
         showErrorMessage("unknown_error");
@@ -500,6 +503,7 @@ if (typeof window !== "undefined") {
   window.showProgressDialog = showProgressDialog;
   window.showSuccessMessage = showSuccessMessage;
   window.showErrorMessage = showErrorMessage;
+  window.showApplicationReviewMessage = showApplicationReviewMessage;
   window.showRejectionMessage = showRejectionMessage;
 }
 
@@ -614,13 +618,13 @@ if (typeof document !== "undefined") {
           // Restrict input to numbers only and validate
           phoneField.addEventListener("input", (e) => {
             // Remove any non-numeric characters except spaces, dashes, parentheses for formatting
-            let value = e.target.value.replace(/[^\d\s\-\(\)]/g, '');
-            
+            let value = e.target.value.replace(/[^\d\s\-\(\)]/g, "");
+
             // Update the field value if it was modified
             if (e.target.value !== value) {
               e.target.value = value;
             }
-            
+
             validatePhone();
           });
 
