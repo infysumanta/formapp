@@ -619,8 +619,7 @@ if (typeof document !== "undefined") {
                     "Phone number is too short. US phone numbers need 10 digits.";
                   break;
                 case 2: // TOO_LONG
-                  errorMessage =
-                    "Phone number is too long. US phone numbers need 10 digits.";
+                  errorMessage = "Please enter valid phone number.";
                   break;
                 case 4: // IS_POSSIBLE_LOCAL_ONLY
                   errorMessage =

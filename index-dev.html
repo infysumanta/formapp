@@ -4,7 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Form Application - Dev Environment</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@24.5.0/build/css/intlTelInput.css">
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/intl-tel-input@24.5.0/build/css/intlTelInput.css"
+    />
     <style>
       /* Dialog Styles */
       #form-dialog {
@@ -358,7 +361,9 @@
           }
 
           if (response.status === 504) {
-            const errorText = await response.text().catch(() => "Gateway Timeout");
+            const errorText = await response
+              .text()
+              .catch(() => "Gateway Timeout");
             console.error("Gateway timeout (504):", errorText);
             return {
               success: false,
@@ -570,9 +575,12 @@
         });
       };
 
-      const showErrorMessage = (errorCode = "unknown_error", dynamicContent = null) => {
+      const showErrorMessage = (
+        errorCode = "unknown_error",
+        dynamicContent = null,
+      ) => {
         let errorInfo;
-        
+
         // Prioritize dynamic content from server response
         if (dynamicContent && dynamicContent.Message) {
           errorInfo = {
@@ -582,15 +590,18 @@
           };
         } else {
           // Only use hardcoded messages for network/unexpected errors
-          errorInfo = messages.errors[errorCode] || messages.errors.unknown_error;
+          errorInfo =
+            messages.errors[errorCode] || messages.errors.unknown_error;
         }
-        
+
         const detailsHtml = errorInfo.details
           ? `<div class="error-details"><h3 class="error-details-title">What you can do:</h3><div>${errorInfo.details}</div></div>`
           : "";
 
         // Use button text from server response or fallback to default
-        const buttonText = (dynamicContent && dynamicContent.buttonText) || messages.buttons.tryAgain;
+        const buttonText =
+          (dynamicContent && dynamicContent.buttonText) ||
+          messages.buttons.tryAgain;
 
         showDialog({
           dialogClass: "error-dialog",
@@ -789,7 +800,10 @@
               });
 
               // Mark as initialized
-              phoneField.setAttribute("data-intl-tel-input-initialized", "true");
+              phoneField.setAttribute(
+                "data-intl-tel-input-initialized",
+                "true",
+              );
 
               // Store ITI instance on the element
               phoneField.itiInstance = iti;
@@ -815,8 +829,7 @@
                         "Phone number is too short. US phone numbers need 10 digits.";
                       break;
                     case 2: // TOO_LONG
-                      errorMessage =
-                        "Phone number is too long. US phone numbers need 10 digits.";
+                      errorMessage = "Please enter valid phone number.";
                       break;
                     case 4: // IS_POSSIBLE_LOCAL_ONLY
                       errorMessage =
@@ -971,7 +984,8 @@
 
       // Load the intl-tel-input script
       const intlTelScript = document.createElement("script");
-      intlTelScript.src = "https://cdn.jsdelivr.net/npm/intl-tel-input@24.5.0/build/js/intlTelInput.min.js";
+      intlTelScript.src =
+        "https://cdn.jsdelivr.net/npm/intl-tel-input@24.5.0/build/js/intlTelInput.min.js";
       intlTelScript.defer = true;
       document.head.appendChild(intlTelScript);
     </script>
