@@ -218,7 +218,7 @@ const removeExistingDialog = () => {
 const createDialogElement = (content) => {
   const dialog = document.createElement("div");
   dialog.id = "form-dialog";
-  dialog.innerHTML = `<div class="dialog-overlay"><div class="dialog-content">${content}</div></div>`;
+  dialog.innerHTML = `<div class="dialog-overlay"><div class="dialog-content" style="position: relative;">${content}</div></div>`;
   return dialog;
 };
 
@@ -254,6 +254,29 @@ const createButtons = (buttons) => {
 const showDialog = (config) => {
   removeExistingDialog();
 
+  const closeButtonHtml = !config.hideCloseButton
+    ? `<button class="dialog-close" onclick="document.getElementById('form-dialog').remove()" aria-label="Close dialog" style="
+         position: absolute;
+         top: 16px;
+         right: 16px;
+         background: none;
+         border: none;
+         padding: 8px;
+         cursor: pointer;
+         border-radius: 4px;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         color: #6b7280;
+         transition: all 0.2s ease;
+         z-index: 10;
+       " onmouseover="this.style.backgroundColor='#f3f4f6'; this.style.color='#374151';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#6b7280';">
+         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+           <line x1="18" y1="6" x2="6" y2="18"></line>
+           <line x1="6" y1="6" x2="18" y2="18"></line>
+         </svg>
+       </button>`
+    : "";
   const iconHtml = config.icon
     ? `<div class="dialog-icon-container ${
         config.iconContainer || ""
@@ -274,7 +297,7 @@ const showDialog = (config) => {
 
   const content = `${
     config.dialogClass ? `<div class="${config.dialogClass}">` : ""
-  }${iconHtml}${titleHtml}${messageHtml}${detailsHtml}${buttonsHtml}${
+  }${closeButtonHtml}${iconHtml}${titleHtml}${messageHtml}${detailsHtml}${buttonsHtml}${
     config.dialogClass ? "</div>" : ""
   }`;
 
@@ -290,6 +313,7 @@ const showProgressDialog = () => {
     title: messages.progress.title,
     message: messages.progress.message,
     icon: "spinner",
+    hideCloseButton: true,
   });
 };
 
