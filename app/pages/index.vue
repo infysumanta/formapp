@@ -18,7 +18,7 @@
       :data-form-id="formConfig.formId"
       :data-form-api-url="`${formConfig.baseUrl}/orgs/${formConfig.orgId}/landingpageforms`"
       :data-cached-form-url="`https://assets-usa.mkt.dynamics.com/${formConfig.orgId}/digitalassets/forms/${formConfig.formId}`"
-    ></div>
+    />
   </div>
 </template>
 
@@ -509,6 +509,16 @@ useHead({
       src: "https://cxppusa1formui01cdnsa01-endpoint.azureedge.net/usa/FormLoader/FormLoader.bundle.js",
       defer: true,
     },
+    {
+      src: "https://cdn.jsdelivr.net/npm/intl-tel-input@24.5.0/build/js/intlTelInput.min.js",
+      defer: true,
+    },
+  ],
+  link: [
+    {
+      rel: "stylesheet",
+      href: "https://cdn.jsdelivr.net/npm/intl-tel-input@24.5.0/build/css/intlTelInput.css",
+    },
   ],
 });
 </script>
@@ -527,69 +537,158 @@ if (typeof document !== "undefined") {
       emailField.setAttribute("oninput", "setCustomValidity('')");
     }
 
-    // Add phone validation and pattern to tel fields
-    const phoneFields = document.querySelectorAll('input[type="tel"]');
-    phoneFields.forEach((phoneField) => {
-      // Set a more flexible pattern that allows common US phone number formats
-      phoneField.setAttribute(
-        "pattern",
-        "^(\\+?1[-. ]?)?\\(?[2-9][0-9]{2}\\)?[-. ]?[2-9][0-9]{2}[-. ]?[0-9]{4}$|^[2-9][0-9]{9}$",
-      );
-      phoneField.setAttribute(
-        "title",
-        "Please enter a valid US phone number (e.g., 5551234567, (555) 123-4567, 555-123-4567, or 555.123.4567)",
-      );
+    // Initialize intl-tel-input for phone fields with country flags
+    const initializePhoneFields = () => {
+      const phoneFields = document.querySelectorAll('input[type="tel"]');
 
-      // Clear custom validity on input to allow revalidation
-      phoneField.addEventListener("input", function (e) {
-        // Allow only digits, spaces, hyphens, dots, parentheses, and plus sign
-        const value = e.target.value.replace(/[^0-9\s\-\.\(\)\+]/g, "");
-        if (e.target.value !== value) {
-          e.target.value = value;
+      phoneFields.forEach((phoneField) => {
+        // Skip if already initialized
+        if (phoneField.hasAttribute("data-intl-tel-input-initialized")) {
+          return;
         }
 
-        // Reset custom validity to allow HTML5 validation to work
-        e.target.setCustomValidity("");
-      });
+        try {
+          // Initialize intl-tel-input for US-only usage
+          const iti = window.intlTelInput(phoneField, {
+            initialCountry: "us",
+            onlyCountries: ["us"],
+            utilsScript:
+              "https://cdn.jsdelivr.net/npm/intl-tel-input@24.5.0/build/js/utils.js",
+            formatOnDisplay: true,
+            separateDialCode: true,
+            nationalMode: true,
+            autoPlaceholder: "aggressive",
+            placeholderNumberType: "MOBILE",
+            showFlags: true,
+            allowDropdown: false,
+            dropdownContainer: document.body,
+          });
 
-      // Set custom validity message on invalid event
-      phoneField.addEventListener("invalid", function (e) {
-        e.target.setCustomValidity(
-          "Please enter a valid US phone number (e.g., 5551234567, (555) 123-4567, or 555-123-4567)",
-        );
-      });
+          // Mark as initialized
+          phoneField.setAttribute("data-intl-tel-input-initialized", "true");
 
-      // Validate on blur for immediate feedback
-      phoneField.addEventListener("blur", function (e) {
-        if (e.target.value) {
-          const pattern =
-            /^((\+?1[-. ]?)?\(?[2-9][0-9]{2}\)?[-. ]?[2-9][0-9]{2}[-. ]?[0-9]{4})|([2-9][0-9]{9})$/;
-          if (!pattern.test(e.target.value)) {
-            e.target.setCustomValidity(
-              "Please enter a valid US phone number (e.g., 5551234567, (555) 123-4567, or 555-123-4567)",
-            );
-            e.target.reportValidity();
-          } else {
-            e.target.setCustomValidity("");
+          // Store ITI instance on the element
+          phoneField.itiInstance = iti;
+
+          // Custom validation
+          const validatePhone = () => {
+            const isValid = iti.isValidNumber();
+            const errorCode = iti.getValidationError();
+
+            if (phoneField.value.trim() === "") {
+              phoneField.setCustomValidity("");
+              return true;
+            }
+
+            if (!isValid) {
+              let errorMessage = "Please enter a valid US phone number";
+
+              // Provide specific error messages for US phone numbers
+              switch (errorCode) {
+                case window.intlTelInputUtils.validationError.TOO_SHORT:
+                  errorMessage =
+                    "Phone number is too short. US phone numbers need 10 digits.";
+                  break;
+                case window.intlTelInputUtils.validationError.TOO_LONG:
+                  errorMessage =
+                    "Phone number is too long. US phone numbers need 10 digits.";
+                  break;
+                case window.intlTelInputUtils.validationError
+                  .IS_POSSIBLE_LOCAL_ONLY:
+                case window.intlTelInputUtils.validationError.INVALID_LENGTH:
+                  errorMessage =
+                    "Please enter a valid 10-digit US phone number (e.g., 555-123-4567).";
+                  break;
+                default:
+                  errorMessage =
+                    "Please enter a valid US phone number (e.g., 555-123-4567).";
+              }
+
+              phoneField.setCustomValidity(errorMessage);
+              return false;
+            }
+
+            phoneField.setCustomValidity("");
+            return true;
+          };
+
+          // Validate on input
+          phoneField.addEventListener("input", () => {
+            validatePhone();
+          });
+
+          // Validate on blur
+          phoneField.addEventListener("blur", () => {
+            if (phoneField.value.trim() !== "") {
+              validatePhone();
+              if (!iti.isValidNumber()) {
+                phoneField.reportValidity();
+              }
+            }
+          });
+
+          // Validate on country change
+          phoneField.addEventListener("countrychange", () => {
+            validatePhone();
+          });
+
+          // Before form submission, ensure we have the full international number
+          const form = phoneField.closest("form");
+          if (form) {
+            form.addEventListener("submit", () => {
+              if (iti.isValidNumber()) {
+                // Store the full international number for form submission
+                phoneField.value = iti.getNumber();
+              }
+            });
           }
-        }
-      });
+        } catch (error) {
+          console.warn(
+            "Failed to initialize intl-tel-input for phone field:",
+            error,
+          );
 
-      // Prevent non-numeric keys from being pressed (except formatting characters)
-      phoneField.addEventListener("keypress", function (e) {
-        const char = String.fromCharCode(e.which);
-        // Allow numbers, space, dash, dot, parentheses, plus, backspace, delete, arrow keys
-        if (
-          !/[0-9\s\-\.\(\)\+]/.test(char) &&
-          !e.ctrlKey &&
-          !e.metaKey &&
-          e.keyCode !== 8 &&
-          e.keyCode !== 46
-        ) {
-          e.preventDefault();
+          // Fallback to basic US phone validation if intl-tel-input fails
+          phoneField.setAttribute(
+            "pattern",
+            "^[2-9][0-9]{2}[2-9][0-9]{2}[0-9]{4}$|^\\([2-9][0-9]{2}\\)[\\s-]?[2-9][0-9]{2}[\\s-]?[0-9]{4}$|^[2-9][0-9]{2}[\\s.-][2-9][0-9]{2}[\\s.-][0-9]{4}$",
+          );
+          phoneField.setAttribute(
+            "title",
+            "Please enter a valid US phone number (e.g., 555-123-4567)",
+          );
+
+          phoneField.addEventListener("input", function (e) {
+            const value = e.target.value.replace(/[^0-9\\s().+-]/g, "");
+            if (e.target.value !== value) {
+              e.target.value = value;
+            }
+            e.target.setCustomValidity("");
+          });
+
+          phoneField.addEventListener("invalid", function (e) {
+            e.target.setCustomValidity(
+              "Please enter a valid US phone number (e.g., 555-123-4567)",
+            );
+          });
         }
       });
-    });
+    };
+
+    // Initialize immediately if intl-tel-input is already loaded
+    if (typeof window.intlTelInput !== "undefined") {
+      initializePhoneFields();
+    } else {
+      // Wait for intl-tel-input to load
+      const checkForIntlTelInput = () => {
+        if (typeof window.intlTelInput !== "undefined") {
+          initializePhoneFields();
+        } else {
+          setTimeout(checkForIntlTelInput, 100);
+        }
+      };
+      checkForIntlTelInput();
+    }
     const dateOfBirthField = document.querySelector(
       'input[name="aces_birthdate"]',
     );
