@@ -29,7 +29,7 @@ const formConfig = {
   orgId: "14e74438-32ad-42c2-91eb-3b40da498c56",
   baseUrl: "https://public-usa.mkt.dynamics.com/api/v1.0",
   successRedirectUrl: "https://client-connect-core.powerappsportals.com/SignIn",
-  applicationReviewUrl: "https://www.acesaba.com",
+  contactSupportUrl: "https://www.acesaba.com/contact",
 };
 
 // Unified messages object containing all dialog messages
@@ -417,7 +417,7 @@ const showApplicationReviewMessage = () => {
     buttons: [
       {
         text: "OK",
-        onclick: `window.location.href='${formConfig.applicationReviewUrl}'`,
+        onclick: "document.getElementById('form-dialog').remove()",
         className: "dialog-button-success",
       },
     ],
