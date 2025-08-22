@@ -199,7 +199,7 @@ const processCaregiverField = (payload) => {
     )?.textContent;
 
     const relationshipLookupField = payload.fields.find(
-      (item) => item.key === "aces_relationshiplookuptext",
+      (item) => item.key === "aces_startherecaregiverrelationshiplookuptext",
     );
     if (relationshipLookupField) {
       relationshipLookupField.value = caregiverRelationship;
