@@ -589,7 +589,7 @@ if (typeof document !== "undefined") {
 
     // Initialize intl-tel-input for phone fields with country flags
     const initializePhoneFields = () => {
-      const phoneFields = document.querySelectorAll('input[type="tel"]');
+      const phoneFields = document.querySelectorAll('input[type="tel"]:not([name="address2_telephone1"])');
 
       phoneFields.forEach((phoneField) => {
         // Skip if already initialized
