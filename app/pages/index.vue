@@ -480,6 +480,19 @@ const submitFormHandler = async (payload) => {
   // Show progress dialog
   showProgressDialog();
 
+  // Update msdyncrm_leadid field with email value
+  if (formEmail) {
+    const leadIdInput = document.querySelector(`input[name='msdyncrm_leadid']`);
+    if (leadIdInput) {
+      leadIdInput.value = formEmail;
+      // Also update in payload if field exists
+      const leadIdField = payload.fields.find(field => field.key === 'msdyncrm_leadid');
+      if (leadIdField) {
+        leadIdField.value = formEmail;
+      }
+    }
+  }
+
   // Process form fields using extracted functions
   window.processPayorField(payload);
   window.processCaregiverField(payload);
@@ -552,9 +565,18 @@ useHead({
 </script>
 
 <script>
+// Global variable to store email for lead ID tracking
+let formEmail = null;
+
 if (typeof document !== "undefined") {
   document.addEventListener("d365mkt-beforeformload", function () {});
   document.addEventListener("d365mkt-afterformload", function () {
+    // Capture email field value for lead ID tracking
+    const emailInput = document.querySelector(`input[name='emailaddress1']`);
+    if (emailInput) {
+      formEmail = emailInput.value;
+    }
+    
     // Add custom validation to email field
     const emailField = document.querySelector('input[type="email"]');
     if (emailField) {
