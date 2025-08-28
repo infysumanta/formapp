@@ -166,18 +166,27 @@ const processPayorField = (payload) => {
   const aces_payor = payload.fields.find((item) => item.key === "aces_payor");
 
   if (aces_payor) {
-    const acesPayorValue = `account,${aces_payor.value}`;
-    const payorListItem = document.querySelector(
-      `li.ui-menu-item[data-value='${CSS.escape(acesPayorValue)}']`,
-    );
-    const payorRelationship = payorListItem?.querySelector(
-      ".ui-menu-item-wrapper",
-    )?.textContent;
+    let payorRelationship = null;
+    
+    // First, check if the input field has a value attribute
+    const payorInput = document.querySelector(`input[name="aces_payor"]`);
+    if (payorInput && payorInput.value) {
+      payorRelationship = payorInput.value;
+    } else {
+      // If no value attribute, check the dropdown options
+      const acesPayorValue = `account,${aces_payor.value}`;
+      const payorListItem = document.querySelector(
+        `li.ui-menu-item[data-value='${CSS.escape(acesPayorValue)}']`,
+      );
+      payorRelationship = payorListItem?.querySelector(
+        ".ui-menu-item-wrapper",
+      )?.textContent;
+    }
 
     const payorLookupField = payload.fields.find(
       (item) => item.key === "aces_payorlookuptext",
     );
-    if (payorLookupField) {
+    if (payorLookupField && payorRelationship) {
       payorLookupField.value = payorRelationship;
     }
   }
@@ -190,18 +199,27 @@ const processCaregiverField = (payload) => {
   );
 
   if (aces_startherecaregiverrelationship) {
-    const acesCaregiverValue = `msemr_codeableconcept,${aces_startherecaregiverrelationship.value}`;
-    const caregiverListItem = document.querySelector(
-      `li.ui-menu-item[data-value='${CSS.escape(acesCaregiverValue)}']`,
-    );
-    const caregiverRelationship = caregiverListItem?.querySelector(
-      ".ui-menu-item-wrapper",
-    )?.textContent;
+    let caregiverRelationship = null;
+    
+    // First, check if the input field has a value attribute
+    const caregiverInput = document.querySelector(`input[name="aces_startherecaregiverrelationship"]`);
+    if (caregiverInput && caregiverInput.value) {
+      caregiverRelationship = caregiverInput.value;
+    } else {
+      // If no value attribute, check the dropdown options
+      const acesCaregiverValue = `msemr_codeableconcept,${aces_startherecaregiverrelationship.value}`;
+      const caregiverListItem = document.querySelector(
+        `li.ui-menu-item[data-value='${CSS.escape(acesCaregiverValue)}']`,
+      );
+      caregiverRelationship = caregiverListItem?.querySelector(
+        ".ui-menu-item-wrapper",
+      )?.textContent;
+    }
 
     const relationshipLookupField = payload.fields.find(
       (item) => item.key === "aces_startherecaregiverrelationshiplookuptext",
     );
-    if (relationshipLookupField) {
+    if (relationshipLookupField && caregiverRelationship) {
       relationshipLookupField.value = caregiverRelationship;
     }
   }
