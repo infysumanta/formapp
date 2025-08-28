@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Form Application - Test Environment</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/intl-tel-input@24.5.0/build/css/intlTelInput.css"
+    />
+    <style>
+      /* Dialog Styles */
+      #form-dialog {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1000;
+      }
+
+      .dialog-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .dialog-content {
+        background: white;
+        border-radius: 12px;
+        padding: 32px;
+        max-width: 480px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+          0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      }
+
+      .dialog-title {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        text-align: center;
+      }
+
+      .dialog-title-large {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 16px;
+        color: #111827;
+      }
+
+      .dialog-message {
+        font-size: 16px;
+        color: #6b7280;
+        margin-bottom: 24px;
+        line-height: 1.6;
+      }
+
+      .dialog-message-large {
+        font-size: 18px;
+        color: #4b5563;
+        margin-bottom: 32px;
+        line-height: 1.6;
+      }
+
+      .dialog-buttons {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+      }
+
+      .dialog-button {
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+      }
+
+      .dialog-button-primary {
+        background: #3b82f6;
+        color: white;
+      }
+
+      .dialog-button-primary:hover {
+        background: #2563eb;
+      }
+
+      .dialog-button-secondary {
+        background: #f3f4f6;
+        color: #374151;
+        border: 1px solid #d1d5db;
+      }
+
+      .dialog-button-secondary:hover {
+        background: #e5e7eb;
+      }
+
+      .dialog-button-success {
+        background: #10b981;
+        color: white;
+      }
+
+      .dialog-button-success:hover {
+        background: #059669;
+      }
+
+      .dialog-icon-container {
+        margin: 0 auto 24px auto;
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .success-icon-container {
+        background: #d1fae5;
+      }
+
+      .error-icon-container {
+        background: #fee2e2;
+      }
+
+      .dialog-icon {
+        width: 32px;
+        height: 32px;
+      }
+
+      .success-icon {
+        color: #10b981;
+      }
+
+      .error-icon {
+        color: #ef4444;
+      }
+
+      .success-dialog .dialog-title-large {
+        color: #065f46;
+      }
+
+      .error-dialog .dialog-title-large {
+        color: #991b1b;
+      }
+
+      .spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+        display: block;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .error-details {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 16px;
+        margin: 20px 0;
+        text-align: left;
+      }
+
+      .error-details-title {
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #374151;
+      }
+
+      /* Form container styles */
+      .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      /* Close button styles */
+      .dialog-close {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        background: none;
+        border: none;
+        padding: 8px;
+        cursor: pointer;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6b7280;
+        transition: all 0.2s ease;
+        z-index: 10;
+      }
+
+      .dialog-close:hover {
+        background-color: #f3f4f6;
+        color: #374151;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div style="max-width: 1200px; margin: 0 auto; text-align: center">
+        <h1
+          style="
+            font-size: 28px;
+            font-weight: bold;
+            margin: 0;
+            color: #ea580c !important;
+          "
+        >
+          Test Environment
+        </h1>
+      </div>
+    </header>
+    <div class="form-container">
+      <div
+        id="form-wrapper"
+        data-form-id="76438228-4767-f011-bec2-00224809e97b"
+        data-form-api-url="https://public-usa.mkt.dynamics.com/api/v1.0/orgs/6c145d34-f8d3-4143-bf40-3a59044edb15/landingpageforms"
+        data-cached-form-url="https://assets-usa.mkt.dynamics.com/6c145d34-f8d3-4143-bf40-3a59044edb15/digitalassets/forms/76438228-4767-f011-bec2-00224809e97b"
+      ></div>
+    </div>
+
+    <script>
+      // Configuration for form submission
+      const formConfig = {
+        formId: "76438228-4767-f011-bec2-00224809e97b",
+        orgId: "6c145d34-f8d3-4143-bf40-3a59044edb15",
+        baseUrl: "https://public-usa.mkt.dynamics.com/api/v1.0",
+        successRedirectUrl:
+          "https://client-connect-stage.powerappsportals.com/",
+        contactSupportUrl: "https://www.acesaba.com/contact",
+      };
+
+      // Unified messages object containing all dialog messages
+      const messages = {
+        progress: {
+          title: "Processing Your Information",
+          message:
+            "Please wait while we verify your information. This may take a few moments.",
+        },
+        success: {
+          title: "Success!",
+          message:
+            "Awesome! We provide services in your area. Login using {userEmail} to continue with application process. Redirecting to login page...",
+          buttonText: "Continue to Login",
+        },
+        confirmation: {
+          title: "Confirm Information",
+          message:
+            "Are you sure you want to submit this information? Please review your information before proceeding.",
+          confirmText: "Yes, Submit",
+          cancelText: "Cancel",
+        },
+        rejection: {
+          title: "Submission Cancelled",
+          message:
+            "Your submission has been cancelled. You can make changes and try again.",
+          buttonText: "OK",
+        },
+        errors: {
+          application_under_review: {
+            title: "Thank You!",
+            description:
+              "Your application is under review. Our support team will contact you to discuss your options.",
+            details: null,
+          },
+          server_error: {
+            title: "Oops!",
+            description:
+              "Something went wrong on our end. Please try again in a few minutes or contact support if the problem persists.",
+            details: null,
+          },
+          unknown_error: {
+            title: "Submission Error",
+            description:
+              "Your application is under review. Our support team will contact you to discuss your options.",
+            details: null,
+          },
+        },
+        buttons: {
+          tryAgain: "Try Again",
+          contactSupport: "Contact Support",
+        },
+      };
+
+      // Fetch function with proper error handling
+      const formFetch = async (payload) => {
+        const url = `${formConfig.baseUrl}/orgs/${formConfig.orgId}/landingpageforms/forms/${formConfig.formId}`;
+
+        const requestOptions = {
+          headers: {
+            accept: "application/json",
+            "cache-control": "no-cache",
+            "content-type": "application/json",
+          },
+          body: JSON.stringify(payload),
+          method: "POST",
+          mode: "cors",
+          credentials: "omit",
+        };
+
+        try {
+          const response = await fetch(url, requestOptions);
+
+          if (response.ok) {
+            return {
+              success: true,
+              data: await response.json().catch(() => ({})),
+            };
+          }
+
+          // Handle specific HTTP status codes
+          if (response.status === 400) {
+            const errorData = await response.json().catch(() => ({}));
+            return {
+              success: false,
+              error: "validation_error",
+              status: 400,
+              data: errorData,
+            };
+          }
+
+          if (response.status === 500) {
+            const errorText = await response.text().catch(() => "{}");
+            let errorData = {};
+            try {
+              errorData = JSON.parse(errorText);
+            } catch (parseError) {
+              errorData = { Message: errorText };
+            }
+            console.error("Server error (500):", errorData);
+            return {
+              success: false,
+              error: "server_error",
+              status: 500,
+              data: errorData,
+            };
+          }
+
+          if (response.status === 504) {
+            const errorText = await response
+              .text()
+              .catch(() => "Gateway Timeout");
+            console.error("Gateway timeout (504):", errorText);
+            return {
+              success: false,
+              error: "server_error",
+              status: 504,
+              data: { Message: "Gateway timeout - please try again later" },
+            };
+          }
+
+          return {
+            success: false,
+            error: "http_error",
+            status: response.status,
+            statusText: response.statusText,
+          };
+        } catch (error) {
+          return {
+            success: false,
+            error: "network_error",
+            message: error.message,
+          };
+        }
+      };
+
+      // Process payor field and update lookup text
+      const processPayorField = (payload) => {
+        const aces_payor = payload.fields.find(
+          (item) => item.key === "aces_payor",
+        );
+
+        if (aces_payor) {
+          const acesPayorValue = `account,${aces_payor.value}`;
+          const payorListItem = document.querySelector(
+            `li.ui-menu-item[data-value='${CSS.escape(acesPayorValue)}']`,
+          );
+          const payorRelationship = payorListItem?.querySelector(
+            ".ui-menu-item-wrapper",
+          )?.textContent;
+
+          const payorLookupField = payload.fields.find(
+            (item) => item.key === "aces_payorlookuptext",
+          );
+          if (payorLookupField) {
+            payorLookupField.value = payorRelationship;
+          }
+        }
+      };
+
+      // Process caregiver relationship field and update lookup text
+      const processCaregiverField = (payload) => {
+        const aces_startherecaregiverrelationship = payload.fields.find(
+          (item) => item.key === "aces_startherecaregiverrelationship",
+        );
+
+        if (aces_startherecaregiverrelationship) {
+          const acesCaregiverValue = `msemr_codeableconcept,${aces_startherecaregiverrelationship.value}`;
+          const caregiverListItem = document.querySelector(
+            `li.ui-menu-item[data-value='${CSS.escape(acesCaregiverValue)}']`,
+          );
+          const caregiverRelationship = caregiverListItem?.querySelector(
+            ".ui-menu-item-wrapper",
+          )?.textContent;
+
+          const relationshipLookupField = payload.fields.find(
+            (item) =>
+              item.key === "aces_startherecaregiverrelationshiplookuptext",
+          );
+          if (relationshipLookupField) {
+            relationshipLookupField.value = caregiverRelationship;
+          }
+        }
+      };
+
+      // Utility functions for dialog management
+      const removeExistingDialog = () => {
+        const existingDialog = document.getElementById("form-dialog");
+        if (existingDialog) {
+          existingDialog.remove();
+        }
+      };
+
+      const createDialogElement = (content) => {
+        const dialog = document.createElement("div");
+        dialog.id = "form-dialog";
+        dialog.innerHTML = `<div class="dialog-overlay"><div class="dialog-content" style="position: relative;">${content}</div></div>`;
+        return dialog;
+      };
+
+      const createIcon = (type) => {
+        const icons = {
+          success:
+            '<svg class="dialog-icon success-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>',
+          error:
+            '<svg class="dialog-icon error-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>',
+          spinner: '<div class="spinner"></div>',
+          errorIcon: '<div class="error-icon"></div>',
+        };
+        return icons[type] || "";
+      };
+
+      const createButtons = (buttons) => {
+        if (!buttons || buttons.length === 0) return "";
+
+        const buttonElements = buttons
+          .map(
+            (btn) =>
+              `<button ${btn.id ? `id="${btn.id}"` : ""} ${
+                btn.onclick ? `onclick="${btn.onclick}"` : ""
+              } class="dialog-button ${
+                btn.className || "dialog-button-primary"
+              }">${btn.text}</button>`,
+          )
+          .join("");
+
+        return `<div class="dialog-buttons">${buttonElements}</div>`;
+      };
+
+      const showDialog = (config) => {
+        removeExistingDialog();
+
+        const closeButtonHtml = !config.hideCloseButton
+          ? `<button class="dialog-close" onclick="document.getElementById('form-dialog').remove()" aria-label="Close dialog">
+               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                 <line x1="18" y1="6" x2="6" y2="18"></line>
+                 <line x1="6" y1="6" x2="18" y2="18"></line>
+               </svg>
+             </button>`
+          : "";
+        const iconHtml = config.icon
+          ? `<div class="dialog-icon-container ${
+              config.iconContainer || ""
+            }">${createIcon(config.icon)}</div>`
+          : "";
+        const titleHtml = config.title
+          ? `<${config.titleTag || "div"} class="${
+              config.titleClass || "dialog-title"
+            }">${config.title}</${config.titleTag || "div"}>`
+          : "";
+        const messageHtml = config.message
+          ? `<p class="${config.messageClass || "dialog-message"}">${
+              config.message
+            }</p>`
+          : "";
+        const detailsHtml = config.details || "";
+        const buttonsHtml = createButtons(config.buttons);
+
+        const content = `${
+          config.dialogClass ? `<div class="${config.dialogClass}">` : ""
+        }${closeButtonHtml}${iconHtml}${titleHtml}${messageHtml}${detailsHtml}${buttonsHtml}${
+          config.dialogClass ? "</div>" : ""
+        }`;
+
+        const dialog = createDialogElement(content);
+        document.body.appendChild(dialog);
+
+        return dialog;
+      };
+
+      // Optimized dialog functions using shared utilities
+      const showProgressDialog = () => {
+        showDialog({
+          title: messages.progress.title,
+          message: messages.progress.message,
+          icon: "spinner",
+          hideCloseButton: true,
+        });
+      };
+
+      const showSuccessMessage = (payload) => {
+        const emailField = payload?.fields?.find(
+          (field) => field.key === "emailaddress1",
+        );
+        const userEmail = emailField?.value || "abc@xyz.com";
+
+        const url = new URL(formConfig.successRedirectUrl);
+        url.searchParams.set("preQualEmail", userEmail);
+        const redirectUrl = url.toString();
+
+        console.log("Success redirect URL:", redirectUrl);
+
+        const successMessage = messages.success.message.replace(
+          "{userEmail}",
+          userEmail,
+        );
+
+        showDialog({
+          dialogClass: "success-dialog",
+          title: messages.success.title,
+          titleTag: "h1",
+          titleClass: "dialog-title-large",
+          message: successMessage,
+          messageClass: "dialog-message-large",
+          icon: "success",
+          iconContainer: "success-icon-container",
+          buttons: [
+            {
+              text: messages.success.buttonText,
+              onclick: `
+                console.log('Redirecting to:', '${redirectUrl}');
+                try {
+                  window.location.href = '${redirectUrl}';
+                } catch (error) {
+                  console.error('Redirect failed:', error);
+                  window.open('${redirectUrl}', '_self');
+                }
+              `,
+              className: "dialog-button-success",
+            },
+          ],
+        });
+      };
+
+      const showErrorMessage = (
+        errorCode = "unknown_error",
+        dynamicContent = null,
+      ) => {
+        let errorInfo;
+
+        // Prioritize dynamic content from server response
+        if (dynamicContent && dynamicContent.Message) {
+          errorInfo = {
+            title: dynamicContent.title || "Application Status",
+            description: dynamicContent.Message,
+            details: null,
+          };
+        } else {
+          // Only use hardcoded messages for network/unexpected errors
+          errorInfo =
+            messages.errors[errorCode] || messages.errors.unknown_error;
+        }
+
+        const detailsHtml = errorInfo.details
+          ? `<div class="error-details"><h3 class="error-details-title">What you can do:</h3><div>${errorInfo.details}</div></div>`
+          : "";
+
+        // Use button text from server response or fallback to default
+        const buttonText =
+          (dynamicContent && dynamicContent.buttonText) ||
+          messages.buttons.tryAgain;
+
+        showDialog({
+          dialogClass: "error-dialog",
+          title: errorInfo.title,
+          titleTag: "h1",
+          titleClass: "dialog-title-large",
+          message: errorInfo.description,
+          messageClass: "dialog-message-large",
+          icon: "error",
+          iconContainer: "error-icon-container",
+          details: detailsHtml,
+          buttons: [
+            {
+              text: buttonText,
+              onclick: "document.getElementById('form-dialog').remove()",
+              className: "dialog-button-primary",
+            },
+          ],
+        });
+      };
+
+      const showApplicationReviewMessage = () => {
+        const reviewInfo = messages.errors.application_under_review;
+
+        showDialog({
+          dialogClass: "success-dialog",
+          title: reviewInfo.title,
+          titleTag: "h1",
+          titleClass: "dialog-title-large",
+          message: reviewInfo.description,
+          messageClass: "dialog-message-large",
+          icon: "success",
+          iconContainer: "success-icon-container",
+          buttons: [
+            {
+              text: "OK",
+              onclick: "document.getElementById('form-dialog').remove()",
+              className: "dialog-button-success",
+            },
+          ],
+        });
+      };
+
+      const showRejectionMessage = () => {
+        showDialog({
+          title: messages.rejection.title,
+          message: messages.rejection.message,
+          icon: "errorIcon",
+          buttons: [
+            {
+              text: messages.rejection.buttonText,
+              onclick: "document.getElementById('form-dialog').remove()",
+              className: "dialog-button-secondary",
+            },
+          ],
+        });
+      };
+
+      const showConfirmationDialog = () => {
+        return new Promise((resolve) => {
+          showDialog({
+            title: messages.confirmation.title,
+            message: messages.confirmation.message,
+            buttons: [
+              {
+                id: "confirm-yes",
+                text: messages.confirmation.confirmText,
+                className: "dialog-button-primary",
+              },
+              {
+                id: "confirm-no",
+                text: messages.confirmation.cancelText,
+                className: "dialog-button-secondary",
+              },
+            ],
+          });
+
+          document
+            .getElementById("confirm-yes")
+            .addEventListener("click", () => resolve(true));
+          document
+            .getElementById("confirm-no")
+            .addEventListener("click", () => resolve(false));
+        });
+      };
+
+      // Global variable to store email for lead ID tracking
+      let formEmail = null;
+
+      // Handle form submission with complete processing logic
+      const submitFormHandler = async (payload) => {
+        // Show confirmation dialog
+        const confirmed = await showConfirmationDialog();
+
+        if (!confirmed) {
+          showRejectionMessage();
+          return;
+        }
+
+        // Show progress dialog
+        showProgressDialog();
+
+        // Update msdyncrm_leadid field with email value
+        if (formEmail) {
+          const leadIdInput = document.querySelector(`input[name='msdyncrm_leadid']`);
+          if (leadIdInput) {
+            leadIdInput.value = formEmail;
+            // Also update in payload if field exists
+            const leadIdField = payload.fields.find(field => field.key === 'msdyncrm_leadid');
+            if (leadIdField) {
+              leadIdField.value = formEmail;
+            }
+          }
+        }
+
+        // Process form fields using extracted functions
+        processPayorField(payload);
+        processCaregiverField(payload);
+
+        const acesIseligiblediagnosis = payload.fields.find(
+          (item) => item.key === "aces_iseligiblediagnosis",
+        );
+
+        const acesPayorfound = payload.fields.find(
+          (item) => item.key === "aces_payorfound",
+        );
+
+        // Use the enhanced fetch function
+        try {
+          const result = await formFetch(payload);
+          if (result.success) {
+            showSuccessMessage(payload);
+          } else {
+            if (result.status === 400) {
+              // All 400 errors show success-style dialog but no redirect
+              showApplicationReviewMessage();
+            } else if (result.status === 500 || result.status === 504) {
+              // Handle server errors (500) and gateway timeouts (504)
+              if (result.data && result.data.Message) {
+                showErrorMessage("server_error", result.data);
+              } else {
+                // No message from server, show generic server error
+                showErrorMessage("server_error");
+              }
+            } else {
+              // Fallback for other errors
+              showErrorMessage("unknown_error");
+            }
+          }
+        } catch (error) {
+          console.error("Unexpected error during form submission:", error);
+
+          // Wait for at least 3 seconds before showing error
+          await new Promise((resolve) => setTimeout(resolve, 3000));
+
+          // Show error dialog instead of redirecting
+          showErrorMessage("unexpected_error");
+        }
+      };
+
+      // Make functions available globally for the event handlers
+      window.formFetch = formFetch;
+      window.processPayorField = processPayorField;
+      window.processCaregiverField = processCaregiverField;
+      window.submitFormHandler = submitFormHandler;
+      window.showConfirmationDialog = showConfirmationDialog;
+      window.showProgressDialog = showProgressDialog;
+      window.showSuccessMessage = showSuccessMessage;
+      window.showErrorMessage = showErrorMessage;
+      window.showApplicationReviewMessage = showApplicationReviewMessage;
+      window.showRejectionMessage = showRejectionMessage;
+
+      // Event listeners for form lifecycle events
+      document.addEventListener("d365mkt-beforeformload", function () {});
+
+      document.addEventListener("d365mkt-afterformload", function () {
+        // Capture email field value for lead ID tracking
+        const emailInput = document.querySelector(`input[name='emailaddress1']`);
+        if (emailInput) {
+          formEmail = emailInput.value;
+        }
+        
+        // Add custom validation to email field
+        const emailField = document.querySelector('input[type="email"]');
+        if (emailField) {
+          emailField.setAttribute(
+            "oninvalid",
+            "setCustomValidity('Please enter valid email address.')",
+          );
+          emailField.setAttribute("oninput", "setCustomValidity('')");
+        }
+
+        // Initialize intl-tel-input for phone fields with country flags
+        const initializePhoneFields = () => {
+          const phoneFields = document.querySelectorAll('input[type="tel"]:not([name="address2_telephone1"])');
+
+          phoneFields.forEach((phoneField) => {
+            // Skip if already initialized
+            if (phoneField.hasAttribute("data-intl-tel-input-initialized")) {
+              return;
+            }
+
+            try {
+              // Initialize intl-tel-input for US-only usage
+              const iti = window.intlTelInput(phoneField, {
+                initialCountry: "us",
+                onlyCountries: ["us"],
+                utilsScript:
+                  "https://cdn.jsdelivr.net/npm/intl-tel-input@24.5.0/build/js/utils.js",
+                formatOnDisplay: true,
+                separateDialCode: true,
+                nationalMode: true,
+                autoPlaceholder: "aggressive",
+                placeholderNumberType: "MOBILE",
+                showFlags: true,
+                allowDropdown: false,
+                dropdownContainer: document.body,
+              });
+
+              // Mark as initialized
+              phoneField.setAttribute(
+                "data-intl-tel-input-initialized",
+                "true",
+              );
+
+              // Store ITI instance on the element
+              phoneField.itiInstance = iti;
+
+              // Custom validation
+              const validatePhone = () => {
+                const isValid = iti.isValidNumber();
+                const errorCode = iti.getValidationError();
+
+                if (phoneField.value.trim() === "") {
+                  phoneField.setCustomValidity("");
+                  return true;
+                }
+
+                if (!isValid) {
+                  let errorMessage = "Please enter a valid US phone number";
+
+                  // Provide specific error messages for US phone numbers using numeric error codes
+                  // Error codes: 0=INVALID_COUNTRY_CODE, 1=TOO_SHORT, 2=TOO_LONG, 3=NOT_A_NUMBER, 4=IS_POSSIBLE_LOCAL_ONLY
+                  switch (errorCode) {
+                    case 1: // TOO_SHORT
+                      errorMessage =
+                        "Phone number is too short. US phone numbers need 10 digits.";
+                      break;
+                    case 2: // TOO_LONG
+                      errorMessage = "Please enter valid phone number.";
+                      break;
+                    case 4: // IS_POSSIBLE_LOCAL_ONLY
+                      errorMessage =
+                        "Please enter a valid 10-digit US phone number (e.g., 555-123-4567).";
+                      break;
+                    default:
+                      errorMessage =
+                        "Please enter a valid US phone number (e.g., 555-123-4567).";
+                  }
+
+                  phoneField.setCustomValidity(errorMessage);
+                  return false;
+                }
+
+                phoneField.setCustomValidity("");
+                return true;
+              };
+
+              // Restrict input to numbers only and validate
+              phoneField.addEventListener("input", (e) => {
+                // Remove any non-numeric characters except spaces, dashes, parentheses for formatting
+                let value = e.target.value.replace(/[^\d\s\-\(\)]/g, "");
+
+                // Update the field value if it was modified
+                if (e.target.value !== value) {
+                  e.target.value = value;
+                }
+
+                validatePhone();
+              });
+
+              // Validate on change
+              phoneField.addEventListener("change", () => {
+                if (phoneField.value.trim() !== "") {
+                  validatePhone();
+                  if (!iti.isValidNumber()) {
+                    phoneField.reportValidity();
+                  }
+                }
+              });
+
+              // Validate on blur
+              phoneField.addEventListener("blur", () => {
+                if (phoneField.value.trim() !== "") {
+                  validatePhone();
+                  if (!iti.isValidNumber()) {
+                    phoneField.reportValidity();
+                  }
+                }
+              });
+
+              // Validate on country change
+              phoneField.addEventListener("countrychange", () => {
+                validatePhone();
+              });
+
+              // Before form submission, ensure we have the full international number
+              const form = phoneField.closest("form");
+              if (form) {
+                form.addEventListener("submit", () => {
+                  if (iti.isValidNumber()) {
+                    // Store the full international number for form submission
+                    phoneField.value = iti.getNumber();
+                  }
+                });
+              }
+            } catch (error) {
+              console.warn(
+                "Failed to initialize intl-tel-input for phone field:",
+                error,
+              );
+
+              // Fallback to basic US phone validation if intl-tel-input fails
+              phoneField.setAttribute(
+                "pattern",
+                "^[2-9][0-9]{2}[2-9][0-9]{2}[0-9]{4}$|^\\([2-9][0-9]{2}\\)[\\s-]?[2-9][0-9]{2}[\\s-]?[0-9]{4}$|^[2-9][0-9]{2}[\\s.-][2-9][0-9]{2}[\\s.-][0-9]{4}$",
+              );
+              phoneField.setAttribute(
+                "title",
+                "Please enter a valid US phone number (e.g., 555-123-4567)",
+              );
+
+              phoneField.addEventListener("input", function (e) {
+                // Only allow digits, spaces, dashes, and parentheses
+                const value = e.target.value.replace(/[^\d\s\-\(\)]/g, "");
+                if (e.target.value !== value) {
+                  e.target.value = value;
+                }
+                e.target.setCustomValidity("");
+              });
+
+              phoneField.addEventListener("invalid", function (e) {
+                e.target.setCustomValidity(
+                  "Please enter a valid US phone number (e.g., 555-123-4567)",
+                );
+              });
+            }
+          });
+        };
+
+        // Initialize immediately if intl-tel-input is already loaded
+        if (typeof window.intlTelInput !== "undefined") {
+          initializePhoneFields();
+        } else {
+          // Wait for intl-tel-input to load
+          const checkForIntlTelInput = () => {
+            if (typeof window.intlTelInput !== "undefined") {
+              initializePhoneFields();
+            } else {
+              setTimeout(checkForIntlTelInput, 100);
+            }
+          };
+          checkForIntlTelInput();
+        }
+        const dateOfBirthField = document.querySelector(
+          'input[name="aces_birthdate"]',
+        );
+        if (dateOfBirthField) {
+          dateOfBirthField.setAttribute(
+            "oninvalid",
+            "setCustomValidity('Please enter a valid date of birth.')",
+          );
+          dateOfBirthField.setAttribute("oninput", "setCustomValidity('')");
+          const oneYearAgo = new Date();
+          oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+          dateOfBirthField.setAttribute(
+            "max",
+            oneYearAgo.toISOString().split("T")[0],
+          );
+          dateOfBirthField.setAttribute(
+            "onchange",
+            "if (this.valueAsDate > new Date()) { this.setCustomValidity('Date of birth cannot be in the future.'); } else { this.setCustomValidity(''); }",
+          );
+        }
+      });
+
+      document.addEventListener("d365mkt-formrender", function () {});
+
+      document.addEventListener("d365mkt-formsubmit", function (event) {
+        event.preventDefault();
+        submitFormHandler(event.detail.payload);
+      });
+
+      document.addEventListener("d365mkt-afterformsubmit", function () {});
+
+      // Load the FormLoader script
+      const formLoaderScript = document.createElement("script");
+      formLoaderScript.src =
+        "https://cxppusa1formui01cdnsa01-endpoint.azureedge.net/usa/FormLoader/FormLoader.bundle.js";
+      formLoaderScript.defer = true;
+      document.head.appendChild(formLoaderScript);
+
+      // Load the intl-tel-input script
+      const intlTelScript = document.createElement("script");
+      intlTelScript.src =
+        "https://cdn.jsdelivr.net/npm/intl-tel-input@24.5.0/build/js/intlTelInput.min.js";
+      intlTelScript.defer = true;
+      document.head.appendChild(intlTelScript);
+    </script>
+  </body>
+</html>
