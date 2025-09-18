@@ -166,27 +166,18 @@ const processPayorField = (payload) => {
   const aces_payor = payload.fields.find((item) => item.key === "aces_payor");
 
   if (aces_payor) {
-    let payorRelationship = null;
-    
-    // First, check if the input field has a value attribute
-    const payorInput = document.querySelector(`input[name="aces_payor"]`);
-    if (payorInput && payorInput.value) {
-      payorRelationship = payorInput.value;
-    } else {
-      // If no value attribute, check the dropdown options
-      const acesPayorValue = `account,${aces_payor.value}`;
-      const payorListItem = document.querySelector(
-        `li.ui-menu-item[data-value='${CSS.escape(acesPayorValue)}']`,
-      );
-      payorRelationship = payorListItem?.querySelector(
-        ".ui-menu-item-wrapper",
-      )?.textContent;
-    }
+    const acesPayorValue = `account,${aces_payor.value}`;
+    const payorListItem = document.querySelector(
+      `li.ui-menu-item[data-value='${CSS.escape(acesPayorValue)}']`,
+    );
+    const payorRelationship = payorListItem?.querySelector(
+      ".ui-menu-item-wrapper",
+    )?.textContent;
 
     const payorLookupField = payload.fields.find(
       (item) => item.key === "aces_payorlookuptext",
     );
-    if (payorLookupField && payorRelationship) {
+    if (payorLookupField) {
       payorLookupField.value = payorRelationship;
     }
   }
@@ -199,30 +190,48 @@ const processCaregiverField = (payload) => {
   );
 
   if (aces_startherecaregiverrelationship) {
-    let caregiverRelationship = null;
-    
-    // First, check if the input field has a value attribute
-    const caregiverInput = document.querySelector(`input[name="aces_startherecaregiverrelationship"]`);
-    if (caregiverInput && caregiverInput.value) {
-      caregiverRelationship = caregiverInput.value;
-    } else {
-      // If no value attribute, check the dropdown options
-      const acesCaregiverValue = `msemr_codeableconcept,${aces_startherecaregiverrelationship.value}`;
-      const caregiverListItem = document.querySelector(
-        `li.ui-menu-item[data-value='${CSS.escape(acesCaregiverValue)}']`,
-      );
-      caregiverRelationship = caregiverListItem?.querySelector(
-        ".ui-menu-item-wrapper",
-      )?.textContent;
-    }
+    const acesCaregiverValue = `msemr_codeableconcept,${aces_startherecaregiverrelationship.value}`;
+    const caregiverListItem = document.querySelector(
+      `li.ui-menu-item[data-value='${CSS.escape(acesCaregiverValue)}']`,
+    );
+    const caregiverRelationship = caregiverListItem?.querySelector(
+      ".ui-menu-item-wrapper",
+    )?.textContent;
 
     const relationshipLookupField = payload.fields.find(
       (item) => item.key === "aces_startherecaregiverrelationshiplookuptext",
     );
-    if (relationshipLookupField && caregiverRelationship) {
+    if (relationshipLookupField) {
       relationshipLookupField.value = caregiverRelationship;
     }
   }
+};
+
+// Process phone fields to format phone numbers in payload
+const processPhoneFields = (payload) => {
+  const phoneFields = document.querySelectorAll('input[type="tel"]:not([name="address2_telephone1"])');
+
+  phoneFields.forEach((phoneField) => {
+    if (phoneField.itiInstance && phoneField.value.trim()) {
+      try {
+        // Get the formatted number in international format
+        const formattedNumber = phoneField.itiInstance.getNumber();
+
+        // Find corresponding field in payload
+        const fieldName = phoneField.getAttribute('name');
+        if (fieldName) {
+          const phonePayloadField = payload.fields.find(
+            (item) => item.key === fieldName
+          );
+          if (phonePayloadField) {
+            phonePayloadField.value = formattedNumber;
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to format phone number:', error);
+      }
+    }
+  });
 };
 
 // Utility functions for dialog management
@@ -333,6 +342,22 @@ const showProgressDialog = () => {
     icon: "spinner",
     hideCloseButton: true,
   });
+
+  // Show delayed message after 25 seconds
+  setTimeout(() => {
+    const existingDialog = document.getElementById("form-dialog");
+    if (existingDialog) {
+      const messageElement = existingDialog.querySelector('.dialog-message');
+      if (messageElement) {
+        messageElement.innerHTML = `
+          ${messages.progress.message}<br><br>
+          <em style="color: #6b7280; font-size: 14px;">
+            Hang tight! This is taking a bit longer than usual. You might find an update waiting in your email.
+          </em>
+        `;
+      }
+    }
+  }, 25000);
 };
 
 const showSuccessMessage = (payload) => {
@@ -514,6 +539,7 @@ const submitFormHandler = async (payload) => {
   // Process form fields using extracted functions
   window.processPayorField(payload);
   window.processCaregiverField(payload);
+  window.processPhoneFields(payload);
 
   // Use the enhanced fetch function
   try {
@@ -553,6 +579,7 @@ if (typeof window !== "undefined") {
   window.formFetch = formFetch;
   window.processPayorField = processPayorField;
   window.processCaregiverField = processCaregiverField;
+  window.processPhoneFields = processPhoneFields;
   window.submitFormHandler = submitFormHandler;
   window.showConfirmationDialog = showConfirmationDialog;
   window.showProgressDialog = showProgressDialog;
@@ -681,7 +708,7 @@ if (typeof document !== "undefined") {
           // Restrict input to numbers only and validate
           phoneField.addEventListener("input", (e) => {
             // Remove any non-numeric characters except spaces, dashes, parentheses for formatting
-            let value = e.target.value.replace(/[^\d\s\-\(\)]/g, "");
+            const value = e.target.value.replace(/[^\d\s\-\(\)]/g, "");
 
             // Update the field value if it was modified
             if (e.target.value !== value) {
@@ -715,17 +742,6 @@ if (typeof document !== "undefined") {
           phoneField.addEventListener("countrychange", () => {
             validatePhone();
           });
-
-          // Before form submission, ensure we have the full international number
-          const form = phoneField.closest("form");
-          if (form) {
-            form.addEventListener("submit", () => {
-              if (iti.isValidNumber()) {
-                // Store the full international number for form submission
-                phoneField.value = iti.getNumber();
-              }
-            });
-          }
         } catch (error) {
           console.warn(
             "Failed to initialize intl-tel-input for phone field:",
