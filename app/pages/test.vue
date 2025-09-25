@@ -39,6 +39,11 @@ const messages = {
     message:
       "Please wait while we verify your information. This may take a few moments.",
   },
+  delayed: {
+    title: "Still Processing...",
+    message:
+      "Please wait while we verify your information. This may take a few moments.<br><br><em style='color: #6b7280; font-size: 14px;'>Hang tight! This is taking a bit longer than usual. You might find an update waiting in your email.</em>",
+  },
   success: {
     title: "Success!",
     message:
@@ -287,9 +292,9 @@ const createButtons = (buttons) => {
       (btn) =>
         `<button ${btn.id ? `id="${btn.id}"` : ""} ${
           btn.onclick ? `onclick="${btn.onclick}"` : ""
-        } class="dialog-button ${btn.className || "dialog-button-primary"}">${
-          btn.text
-        }</button>`,
+        } class="dialog-button ${btn.className || "dialog-button-primary"}" ${
+          btn.style ? `style="${btn.style}"` : ""
+        }>${btn.text}</button>`,
     )
     .join("");
 
@@ -369,15 +374,21 @@ const showProgressDialog = () => {
   setTimeout(() => {
     const existingDialog = document.getElementById("form-dialog");
     if (existingDialog && !preventMessageUpdates) {
-      const messageElement = existingDialog.querySelector('.dialog-message');
-      if (messageElement) {
-        messageElement.innerHTML = `
-          ${messages.progress.message}<br><br>
-          <em style="color: #6b7280; font-size: 14px;">
-            Hang tight! This is taking a bit longer than usual. You might find an update waiting in your email.
-          </em>
-        `;
-      }
+      // Use showDialog function to properly update the dialog
+      showDialog({
+        title: messages.delayed.title,
+        message: messages.delayed.message,
+        icon: "spinner",
+        hideCloseButton: true,
+        buttons: [
+          {
+            text: "Continue Anyway",
+            onclick: "document.getElementById('form-dialog').remove()",
+            className: "dialog-button-secondary",
+            style: "margin-top: 12px; padding: 8px 16px; font-size: 14px;"
+          }
+        ]
+      });
     }
   }, 25000);
 };
