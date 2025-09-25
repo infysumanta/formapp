@@ -93,6 +93,10 @@ const messages = {
 const formFetch = async (payload) => {
   const url = `${formConfig.baseUrl}/orgs/${formConfig.orgId}/landingpageforms/forms/${formConfig.formId}`;
 
+  // Create AbortController for 30-second timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
+
   const requestOptions = {
     headers: {
       accept: "application/json",
@@ -103,10 +107,12 @@ const formFetch = async (payload) => {
     method: "POST",
     mode: "cors",
     credentials: "omit",
+    signal: controller.signal,
   };
 
   try {
     const response = await fetch(url, requestOptions);
+    clearTimeout(timeoutId);
 
     if (response.ok) {
       return { success: true, data: await response.json().catch(() => ({})) };
@@ -158,6 +164,16 @@ const formFetch = async (payload) => {
       statusText: response.statusText,
     };
   } catch (error) {
+    clearTimeout(timeoutId);
+
+    if (error.name === 'AbortError') {
+      return {
+        success: false,
+        error: "timeout_error",
+        message: "Request timed out after 30 seconds",
+      };
+    }
+
     return {
       success: false,
       error: "network_error",
@@ -562,8 +578,8 @@ const submitFormHandler = async (payload) => {
       if (result.status === 400) {
         // All 400 errors show success-style dialog but no redirect
         showApplicationReviewMessage();
-      } else if (result.status === 500 || result.status === 504) {
-        // For 500 and 504 errors, show delayed message with success styling
+      } else if (result.status === 500 || result.status === 504 || result.error === "timeout_error") {
+        // For 500, 504 errors, and timeouts, show delayed message with success styling
         showDialog({
           dialogClass: "success-dialog",
           title: messages.delayed.title,
