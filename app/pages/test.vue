@@ -370,27 +370,6 @@ const showProgressDialog = () => {
     hideCloseButton: true,
   });
 
-  // Show delayed message after 25 seconds
-  setTimeout(() => {
-    const existingDialog = document.getElementById("form-dialog");
-    if (existingDialog && !preventMessageUpdates) {
-      // Use showDialog function to properly update the dialog
-      showDialog({
-        title: messages.delayed.title,
-        message: messages.delayed.message,
-        icon: "spinner",
-        hideCloseButton: true,
-        buttons: [
-          {
-            text: "Continue Anyway",
-            onclick: "document.getElementById('form-dialog').remove()",
-            className: "dialog-button-secondary",
-            style: "margin-top: 12px; padding: 8px 16px; font-size: 14px;"
-          }
-        ]
-      });
-    }
-  }, 25000);
 };
 
 const showSuccessMessage = (payload) => {
@@ -585,7 +564,6 @@ const submitFormHandler = async (payload) => {
         showApplicationReviewMessage();
       } else if (result.status === 500 || result.status === 504) {
         // For 500 and 504 errors, show delayed message with success styling
-        preventMessageUpdates = true;
         showDialog({
           dialogClass: "success-dialog",
           title: messages.delayed.title,
@@ -604,8 +582,6 @@ const submitFormHandler = async (payload) => {
           ],
         });
       } else {
-        // For other errors, wait at least 3 seconds
-        await new Promise((resolve) => setTimeout(resolve, 3000));
         showErrorMessage("unknown_error");
       }
     }
@@ -613,7 +589,6 @@ const submitFormHandler = async (payload) => {
     console.error("Unexpected error during form submission:", error);
 
     // Show success message for network errors too
-    preventMessageUpdates = true;
     showDialog({
       dialogClass: "success-dialog",
       title: messages.delayed.title,

@@ -565,7 +565,6 @@ const submitFormHandler = async (payload) => {
         showApplicationReviewMessage();
       } else if (result.status === 500 || result.status === 504) {
         // For 500 and 504 errors, show delayed message with success styling
-        preventMessageUpdates = true;
         showDialog({
           dialogClass: "success-dialog",
           title: messages.delayed.title,
@@ -584,8 +583,6 @@ const submitFormHandler = async (payload) => {
           ],
         });
       } else {
-        // For other errors, wait at least 3 seconds
-        await new Promise((resolve) => setTimeout(resolve, 3000));
         showErrorMessage("unknown_error");
       }
     }
