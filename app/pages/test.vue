@@ -95,7 +95,7 @@ const formFetch = async (payload) => {
 
   // Create AbortController for 30-second timeout
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 30000);
+  const timeoutId = setTimeout(() => controller.abort(), 29000);
 
   const requestOptions = {
     headers: {
