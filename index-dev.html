@@ -817,28 +817,25 @@
               // All 400 errors show success-style dialog but no redirect
               showApplicationReviewMessage();
             } else if (result.status === 500 || result.status === 504) {
-              // For gateway timeouts, prevent further message updates after 25 seconds
-              if (result.status === 504) {
-                preventMessageUpdates = true;
-              }
-
-              // For server errors and gateway timeouts, wait at least 25 seconds to match progress dialog timing
-              const minDisplayTime = 25000;
-              const startTime = Date.now();
-              const elapsed = Date.now() - startTime;
-              const remainingTime = Math.max(0, minDisplayTime - elapsed);
-
-              if (remainingTime > 0) {
-                await new Promise((resolve) => setTimeout(resolve, remainingTime));
-              }
-
-              // Handle server errors (500) and gateway timeouts (504)
-              if (result.data && result.data.Message) {
-                showErrorMessage("server_error", result.data);
-              } else {
-                // No message from server, show generic server error
-                showErrorMessage("server_error");
-              }
+              // For 500 and 504 errors, show delayed message with success styling
+              preventMessageUpdates = true;
+              showDialog({
+                dialogClass: "success-dialog",
+                title: messages.delayed.title,
+                titleTag: "h1",
+                titleClass: "dialog-title-large",
+                message: messages.delayed.message,
+                messageClass: "dialog-message-large",
+                icon: "success",
+                iconContainer: "success-icon-container",
+                buttons: [
+                  {
+                    text: "OK",
+                    onclick: "document.getElementById('form-dialog').remove()",
+                    className: "dialog-button-success",
+                  },
+                ],
+              });
             } else {
               // For other errors, wait at least 3 seconds
               await new Promise((resolve) => setTimeout(resolve, 3000));
@@ -848,12 +845,25 @@
         } catch (error) {
           console.error("Unexpected error during form submission:", error);
 
-          // Wait for at least 25 seconds to match progress dialog timing
-          const minDisplayTime = 25000;
-          await new Promise((resolve) => setTimeout(resolve, minDisplayTime));
-
-          // Show error dialog instead of redirecting
-          showErrorMessage("unexpected_error");
+          // Show success message for network errors too
+          preventMessageUpdates = true;
+          showDialog({
+            dialogClass: "success-dialog",
+            title: messages.delayed.title,
+            titleTag: "h1",
+            titleClass: "dialog-title-large",
+            message: messages.delayed.message,
+            messageClass: "dialog-message-large",
+            icon: "success",
+            iconContainer: "success-icon-container",
+            buttons: [
+              {
+                text: "OK",
+                onclick: "document.getElementById('form-dialog').remove()",
+                className: "dialog-button-success",
+              },
+            ],
+          });
         }
       };
 

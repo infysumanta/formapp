@@ -40,9 +40,9 @@ const messages = {
       "Please wait while we verify your information. This may take a few moments.",
   },
   delayed: {
-    title: "Still Processing...",
+    title: "Hang tight!",
     message:
-      "Please wait while we verify your information. This may take a few moments.<br><br><em style='color: #6b7280; font-size: 14px;'>Hang tight! This is taking a bit longer than usual. You might find an update waiting in your email.</em>",
+      "This is taking a bit longer than usual. You might find an update waiting in your email.</em>",
   },
   success: {
     title: "Success!",
@@ -370,27 +370,6 @@ const showProgressDialog = () => {
     hideCloseButton: true,
   });
 
-  // Show delayed message after 25 seconds
-  setTimeout(() => {
-    const existingDialog = document.getElementById("form-dialog");
-    if (existingDialog && !preventMessageUpdates) {
-      // Use showDialog function to properly update the dialog
-      showDialog({
-        title: messages.delayed.title,
-        message: messages.delayed.message,
-        icon: "spinner",
-        hideCloseButton: true,
-        buttons: [
-          {
-            text: "Continue Anyway",
-            onclick: "document.getElementById('form-dialog').remove()",
-            className: "dialog-button-secondary",
-            style: "margin-top: 12px; padding: 8px 16px; font-size: 14px;"
-          }
-        ]
-      });
-    }
-  }, 25000);
 };
 
 const showSuccessMessage = (payload) => {
@@ -577,6 +556,7 @@ const submitFormHandler = async (payload) => {
   // Use the enhanced fetch function
   try {
     const result = await window.formFetch(payload);
+
     if (result.success) {
       showSuccessMessage(payload);
     } else {
@@ -584,28 +564,25 @@ const submitFormHandler = async (payload) => {
         // All 400 errors show success-style dialog but no redirect
         showApplicationReviewMessage();
       } else if (result.status === 500 || result.status === 504) {
-        // For gateway timeouts, prevent further message updates after 25 seconds
-        if (result.status === 504) {
-          preventMessageUpdates = true;
-        }
-
-        // For server errors and gateway timeouts, wait at least 25 seconds to match progress dialog timing
-        const minDisplayTime = 25000;
-        const startTime = Date.now();
-        const elapsed = Date.now() - startTime;
-        const remainingTime = Math.max(0, minDisplayTime - elapsed);
-
-        if (remainingTime > 0) {
-          await new Promise((resolve) => setTimeout(resolve, remainingTime));
-        }
-
-        // Handle server errors (500) and gateway timeouts (504)
-        if (result.data && result.data.Message) {
-          showErrorMessage("server_error", result.data);
-        } else {
-          // No message from server, show generic server error
-          showErrorMessage("server_error");
-        }
+        // For 500 and 504 errors, show delayed message with success styling
+        preventMessageUpdates = true;
+        showDialog({
+          dialogClass: "success-dialog",
+          title: messages.delayed.title,
+          titleTag: "h1",
+          titleClass: "dialog-title-large",
+          message: messages.delayed.message,
+          messageClass: "dialog-message-large",
+          icon: "success",
+          iconContainer: "success-icon-container",
+          buttons: [
+            {
+              text: "OK",
+              onclick: "document.getElementById('form-dialog').remove()",
+              className: "dialog-button-success",
+            },
+          ],
+        });
       } else {
         // For other errors, wait at least 3 seconds
         await new Promise((resolve) => setTimeout(resolve, 3000));
@@ -614,12 +591,6 @@ const submitFormHandler = async (payload) => {
     }
   } catch (error) {
     console.error("Unexpected error during form submission:", error);
-
-    // Wait for at least 25 seconds to match progress dialog timing
-    const minDisplayTime = 25000;
-    await new Promise((resolve) => setTimeout(resolve, minDisplayTime));
-
-    // Show error dialog instead of redirecting
     showErrorMessage("unexpected_error");
   }
 };
