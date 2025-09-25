@@ -352,8 +352,12 @@ const showDialog = (config) => {
   return dialog;
 };
 
+// Global variable to track if we should prevent message updates (for gateway timeouts)
+let preventMessageUpdates = false;
+
 // Optimized dialog functions using shared utilities
 const showProgressDialog = () => {
+  preventMessageUpdates = false; // Reset the flag
   showDialog({
     title: messages.progress.title,
     message: messages.progress.message,
@@ -364,7 +368,7 @@ const showProgressDialog = () => {
   // Show delayed message after 25 seconds
   setTimeout(() => {
     const existingDialog = document.getElementById("form-dialog");
-    if (existingDialog) {
+    if (existingDialog && !preventMessageUpdates) {
       const messageElement = existingDialog.querySelector('.dialog-message');
       if (messageElement) {
         messageElement.innerHTML = `
@@ -569,6 +573,21 @@ const submitFormHandler = async (payload) => {
         // All 400 errors show success-style dialog but no redirect
         showApplicationReviewMessage();
       } else if (result.status === 500 || result.status === 504) {
+        // For gateway timeouts, prevent further message updates after 25 seconds
+        if (result.status === 504) {
+          preventMessageUpdates = true;
+        }
+
+        // For server errors and gateway timeouts, wait at least 25 seconds to match progress dialog timing
+        const minDisplayTime = 25000;
+        const startTime = Date.now();
+        const elapsed = Date.now() - startTime;
+        const remainingTime = Math.max(0, minDisplayTime - elapsed);
+
+        if (remainingTime > 0) {
+          await new Promise((resolve) => setTimeout(resolve, remainingTime));
+        }
+
         // Handle server errors (500) and gateway timeouts (504)
         if (result.data && result.data.Message) {
           showErrorMessage("server_error", result.data);
@@ -577,15 +596,17 @@ const submitFormHandler = async (payload) => {
           showErrorMessage("server_error");
         }
       } else {
-        // Fallback for other errors
+        // For other errors, wait at least 3 seconds
+        await new Promise((resolve) => setTimeout(resolve, 3000));
         showErrorMessage("unknown_error");
       }
     }
   } catch (error) {
     console.error("Unexpected error during form submission:", error);
 
-    // Wait for at least 3 seconds before showing error
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    // Wait for at least 25 seconds to match progress dialog timing
+    const minDisplayTime = 25000;
+    await new Promise((resolve) => setTimeout(resolve, minDisplayTime));
 
     // Show error dialog instead of redirecting
     showErrorMessage("unexpected_error");
