@@ -40,9 +40,9 @@ const messages = {
       "Please wait while we verify your information. This may take a few moments.",
   },
   delayed: {
-    title: "Still Processing...",
+    title: "Hang tight!",
     message:
-      "Please wait while we verify your information. This may take a few moments.<br><br><em style='color: #6b7280; font-size: 14px;'>Hang tight! This is taking a bit longer than usual. You might find an update waiting in your email.</em>",
+      "This is taking a bit longer than usual. You might find an update waiting in your email.",
   },
   success: {
     title: "Success!",
