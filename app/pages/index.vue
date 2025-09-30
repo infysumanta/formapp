@@ -166,7 +166,7 @@ const formFetch = async (payload) => {
   } catch (error) {
     clearTimeout(timeoutId);
 
-    if (error.name === 'AbortError') {
+    if (error.name === "AbortError") {
       return {
         success: false,
         error: "timeout_error",
@@ -223,7 +223,9 @@ const processCaregiverField = (payload) => {
     let caregiverRelationship = null;
 
     // First, check if the input field has a value attribute
-    const caregiverInput = document.querySelector(`input[name="aces_startherecaregiverrelationship"]`);
+    const caregiverInput = document.querySelector(
+      `input[name="aces_startherecaregiverrelationship"]`,
+    );
     if (caregiverInput && caregiverInput.value) {
       caregiverRelationship = caregiverInput.value;
     } else {
@@ -248,7 +250,9 @@ const processCaregiverField = (payload) => {
 
 // Process phone fields to format phone numbers in payload
 const processPhoneFields = (payload) => {
-  const phoneFields = document.querySelectorAll('input[type="tel"]:not([name="address2_telephone1"])');
+  const phoneFields = document.querySelectorAll(
+    'input[type="tel"]:not([name="address2_telephone1"])',
+  );
 
   phoneFields.forEach((phoneField) => {
     if (phoneField.itiInstance && phoneField.value.trim()) {
@@ -257,17 +261,17 @@ const processPhoneFields = (payload) => {
         const formattedNumber = phoneField.itiInstance.getNumber();
 
         // Find corresponding field in payload
-        const fieldName = phoneField.getAttribute('name');
+        const fieldName = phoneField.getAttribute("name");
         if (fieldName) {
           const phonePayloadField = payload.fields.find(
-            (item) => item.key === fieldName
+            (item) => item.key === fieldName,
           );
           if (phonePayloadField) {
             phonePayloadField.value = formattedNumber;
           }
         }
       } catch (error) {
-        console.warn('Failed to format phone number:', error);
+        console.warn("Failed to format phone number:", error);
       }
     }
   });
@@ -385,7 +389,6 @@ const showProgressDialog = () => {
     icon: "spinner",
     hideCloseButton: true,
   });
-
 };
 
 const showSuccessMessage = (payload) => {
@@ -557,7 +560,9 @@ const submitFormHandler = async (payload) => {
     if (leadIdInput) {
       leadIdInput.value = formEmail;
       // Also update in payload if field exists
-      const leadIdField = payload.fields.find(field => field.key === 'msdyncrm_leadid');
+      const leadIdField = payload.fields.find(
+        (field) => field.key === "msdyncrm_leadid",
+      );
       if (leadIdField) {
         leadIdField.value = formEmail;
       }
@@ -576,10 +581,10 @@ const submitFormHandler = async (payload) => {
     if (result.success) {
       showSuccessMessage(payload);
     } else {
-      if (result.status === 400) {
+      if (result.status >= 400 && result.status < 500) {
         // All 400 errors show success-style dialog but no redirect
         showApplicationReviewMessage();
-      } else if (result.status === 500 || result.status === 504 || result.error === "timeout_error") {
+      } else if (result.status >= 500 || result.error === "timeout_error") {
         // For 500, 504 errors, and timeouts, show delayed message with success styling
         showDialog({
           dialogClass: "success-dialog",
@@ -599,12 +604,46 @@ const submitFormHandler = async (payload) => {
           ],
         });
       } else {
-        showErrorMessage("unknown_error");
+        showDialog({
+          dialogClass: "success-dialog",
+          title: messages.delayed.title,
+          titleTag: "h1",
+          titleClass: "dialog-title-large",
+          message: messages.delayed.message,
+          messageClass: "dialog-message-large",
+          icon: "success",
+          iconContainer: "success-icon-container",
+          buttons: [
+            {
+              text: "OK",
+              onclick: "document.getElementById('form-dialog').remove()",
+              className: "dialog-button-success",
+            },
+          ],
+        });
       }
     }
   } catch (error) {
     console.error("Unexpected error during form submission:", error);
-    showErrorMessage("unexpected_error");
+
+    // Show success message for network errors too
+    showDialog({
+      dialogClass: "success-dialog",
+      title: messages.delayed.title,
+      titleTag: "h1",
+      titleClass: "dialog-title-large",
+      message: messages.delayed.message,
+      messageClass: "dialog-message-large",
+      icon: "success",
+      iconContainer: "success-icon-container",
+      buttons: [
+        {
+          text: "OK",
+          onclick: "document.getElementById('form-dialog').remove()",
+          className: "dialog-button-success",
+        },
+      ],
+    });
   }
 };
 
@@ -655,7 +694,7 @@ if (typeof document !== "undefined") {
     if (emailInput) {
       formEmail = emailInput.value;
     }
-    
+
     // Add custom validation to email field
     const emailField = document.querySelector('input[type="email"]');
     if (emailField) {
@@ -668,7 +707,9 @@ if (typeof document !== "undefined") {
 
     // Initialize intl-tel-input for phone fields with country flags
     const initializePhoneFields = () => {
-      const phoneFields = document.querySelectorAll('input[type="tel"]:not([name="address2_telephone1"])');
+      const phoneFields = document.querySelectorAll(
+        'input[type="tel"]:not([name="address2_telephone1"])',
+      );
 
       phoneFields.forEach((phoneField) => {
         // Skip if already initialized
