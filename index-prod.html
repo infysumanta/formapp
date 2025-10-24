@@ -238,8 +238,8 @@
       <div
         id="form-wrapper"
         data-form-id="76438228-4767-f011-bec2-00224809e97b"
-        data-form-api-url='https://public-usa.mkt.dynamics.com/api/v1.0/orgs/7c9d60de-c4a0-4724-aec8-ea5438e0277b/landingpageforms'
-        data-cached-form-url='https://assets-usa.mkt.dynamics.com/7c9d60de-c4a0-4724-aec8-ea5438e0277b/digitalassets/forms/76438228-4767-f011-bec2-00224809e97b' ></div>
+        data-form-api-url="https://public-usa.mkt.dynamics.com/api/v1.0/orgs/7c9d60de-c4a0-4724-aec8-ea5438e0277b/landingpageforms"
+        data-cached-form-url="https://assets-usa.mkt.dynamics.com/7c9d60de-c4a0-4724-aec8-ea5438e0277b/digitalassets/forms/76438228-4767-f011-bec2-00224809e97b"
       ></div>
     </div>
 
@@ -265,7 +265,7 @@
         delayed: {
           title: "Hang tight!",
           message:
-            "This is taking a bit longer than usual. Please check your email for next steps.",
+            "This is taking a bit longer than usual. You might find an update waiting in your email.",
         },
         success: {
           title: "Success!",
@@ -541,7 +541,9 @@
                 btn.onclick ? `onclick="${btn.onclick}"` : ""
               } class="dialog-button ${
                 btn.className || "dialog-button-primary"
-              }" ${btn.style ? `style="${btn.style}"` : ""}>${btn.text}</button>`,
+              }" ${btn.style ? `style="${btn.style}"` : ""}>${
+                btn.text
+              }</button>`,
           )
           .join("");
 
@@ -779,11 +781,15 @@
 
         // Update msdyncrm_leadid field with email value
         if (formEmail) {
-          const leadIdInput = document.querySelector(`input[name='msdyncrm_leadid']`);
+          const leadIdInput = document.querySelector(
+            `input[name='msdyncrm_leadid']`,
+          );
           if (leadIdInput) {
             leadIdInput.value = formEmail;
             // Also update in payload if field exists
-            const leadIdField = payload.fields.find(field => field.key === 'msdyncrm_leadid');
+            const leadIdField = payload.fields.find(
+              (field) => field.key === "msdyncrm_leadid",
+            );
             if (leadIdField) {
               leadIdField.value = formEmail;
             }
@@ -809,10 +815,13 @@
           if (result.success) {
             showSuccessMessage(payload);
           } else {
-            if (result.status === 400) {
+            if (result.status >= 400 && result.status < 500) {
               // All 400 errors show success-style dialog but no redirect
               showApplicationReviewMessage();
-            } else if (result.status === 500 || result.status === 504 || result.error === "timeout_error") {
+            } else if (
+              result.status >= 500 ||
+              result.error === "timeout_error"
+            ) {
               // For 500, 504 errors, and timeouts, show delayed message with success styling
               showDialog({
                 dialogClass: "success-dialog",
@@ -832,7 +841,23 @@
                 ],
               });
             } else {
-              showErrorMessage("unknown_error");
+              showDialog({
+                dialogClass: "success-dialog",
+                title: messages.delayed.title,
+                titleTag: "h1",
+                titleClass: "dialog-title-large",
+                message: messages.delayed.message,
+                messageClass: "dialog-message-large",
+                icon: "success",
+                iconContainer: "success-icon-container",
+                buttons: [
+                  {
+                    text: "OK",
+                    onclick: `window.location.href='${formConfig.thankyouPageUrl}'`,
+                    className: "dialog-button-success",
+                  },
+                ],
+              });
             }
           }
         } catch (error) {
@@ -877,11 +902,13 @@
 
       document.addEventListener("d365mkt-afterformload", function () {
         // Capture email field value for lead ID tracking
-        const emailInput = document.querySelector(`input[name='emailaddress1']`);
+        const emailInput = document.querySelector(
+          `input[name='emailaddress1']`,
+        );
         if (emailInput) {
           formEmail = emailInput.value;
         }
-        
+
         // Add custom validation to email field
         const emailField = document.querySelector('input[type="email"]');
         if (emailField) {
