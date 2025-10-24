@@ -30,6 +30,7 @@ const formConfig = {
   baseUrl: "https://public-usa.mkt.dynamics.com/api/v1.0",
   successRedirectUrl: "https://client-connect-test.powerappsportals.com/",
   contactSupportUrl: "https://www.acesaba.com/contact",
+  thankyouPageUrl: "https://www.acesaba.com/aces/thank-you",
 };
 
 // Unified messages object containing all dialog messages
@@ -597,7 +598,7 @@ const submitFormHandler = async (payload) => {
           buttons: [
             {
               text: "OK",
-              onclick: "document.getElementById('form-dialog').remove()",
+              onclick: `window.location.href='${formConfig.thankyouPageUrl}'`,
               className: "dialog-button-success",
             },
           ],
@@ -615,7 +616,7 @@ const submitFormHandler = async (payload) => {
           buttons: [
             {
               text: "OK",
-              onclick: "document.getElementById('form-dialog').remove()",
+              onclick: `window.location.href='${formConfig.thankyouPageUrl}'`,
               className: "dialog-button-success",
             },
           ],
@@ -638,7 +639,7 @@ const submitFormHandler = async (payload) => {
       buttons: [
         {
           text: "OK",
-          onclick: "document.getElementById('form-dialog').remove()",
+          onclick: `window.location.href='${formConfig.thankyouPageUrl}'`,
           className: "dialog-button-success",
         },
       ],

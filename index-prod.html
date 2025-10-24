@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Form Application - Test Environment</title>
+    <title>Form Application - Dev Environment</title>
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/intl-tel-input@24.5.0/build/css/intlTelInput.css"
@@ -227,29 +227,30 @@
             font-size: 28px;
             font-weight: bold;
             margin: 0;
-            color: #ea580c !important;
+            color: #16a34a !important;
           "
         >
-          Test Environment
+          Dev Environment
         </h1>
       </div>
     </header>
     <div class="form-container">
       <div
         id="form-wrapper"
-        data-form-id="d3630a02-b871-f011-b4cc-6045bd019ae9"
-        data-form-api-url="https://public-usa.mkt.dynamics.com/api/v1.0/orgs/22995153-1e26-409d-a380-d58e92c7e210/landingpageforms"
-        data-cached-form-url="https://assets-usa.mkt.dynamics.com/22995153-1e26-409d-a380-d58e92c7e210/digitalassets/forms/d3630a02-b871-f011-b4cc-6045bd019ae9"
+        data-form-id="76438228-4767-f011-bec2-00224809e97b"
+        data-form-api-url='https://public-usa.mkt.dynamics.com/api/v1.0/orgs/7c9d60de-c4a0-4724-aec8-ea5438e0277b/landingpageforms'
+        data-cached-form-url='https://assets-usa.mkt.dynamics.com/7c9d60de-c4a0-4724-aec8-ea5438e0277b/digitalassets/forms/76438228-4767-f011-bec2-00224809e97b' ></div>
       ></div>
     </div>
 
     <script>
       // Configuration for form submission
       const formConfig = {
-        formId: "d3630a02-b871-f011-b4cc-6045bd019ae9",
-        orgId: "22995153-1e26-409d-a380-d58e92c7e210",
+        formId: "76438228-4767-f011-bec2-00224809e97b",
+        orgId: "7c9d60de-c4a0-4724-aec8-ea5438e0277b",
         baseUrl: "https://public-usa.mkt.dynamics.com/api/v1.0",
-        successRedirectUrl: "https://client-connect-test.powerappsportals.com/",
+        successRedirectUrl:
+          "https://client-connect.powerappsportals.com/SignIn",
         contactSupportUrl: "https://www.acesaba.com/contact",
         thankyouPageUrl: "https://www.acesaba.com/aces/thank-you",
       };
@@ -264,7 +265,7 @@
         delayed: {
           title: "Hang tight!",
           message:
-            "This is taking a bit longer than usual. You might find an update waiting in your email.",
+            "This is taking a bit longer than usual. Please check your email for next steps.",
         },
         success: {
           title: "Success!",
@@ -393,7 +394,7 @@
         } catch (error) {
           clearTimeout(timeoutId);
 
-          if (error.name === "AbortError") {
+          if (error.name === 'AbortError') {
             return {
               success: false,
               error: "timeout_error",
@@ -452,9 +453,7 @@
           let caregiverRelationship = null;
 
           // First, check if the input field has a value attribute
-          const caregiverInput = document.querySelector(
-            `input[name="aces_startherecaregiverrelationship"]`,
-          );
+          const caregiverInput = document.querySelector(`input[name="aces_startherecaregiverrelationship"]`);
           if (caregiverInput && caregiverInput.value) {
             caregiverRelationship = caregiverInput.value;
           } else {
@@ -480,9 +479,7 @@
 
       // Process phone fields to format phone numbers in payload
       const processPhoneFields = (payload) => {
-        const phoneFields = document.querySelectorAll(
-          'input[type="tel"]:not([name="address2_telephone1"])',
-        );
+        const phoneFields = document.querySelectorAll('input[type="tel"]:not([name="address2_telephone1"])');
 
         phoneFields.forEach((phoneField) => {
           if (phoneField.itiInstance && phoneField.value.trim()) {
@@ -491,17 +488,17 @@
               const formattedNumber = phoneField.itiInstance.getNumber();
 
               // Find corresponding field in payload
-              const fieldName = phoneField.getAttribute("name");
+              const fieldName = phoneField.getAttribute('name');
               if (fieldName) {
                 const phonePayloadField = payload.fields.find(
-                  (item) => item.key === fieldName,
+                  (item) => item.key === fieldName
                 );
                 if (phonePayloadField) {
                   phonePayloadField.value = formattedNumber;
                 }
               }
             } catch (error) {
-              console.warn("Failed to format phone number:", error);
+              console.warn('Failed to format phone number:', error);
             }
           }
         });
@@ -544,9 +541,7 @@
                 btn.onclick ? `onclick="${btn.onclick}"` : ""
               } class="dialog-button ${
                 btn.className || "dialog-button-primary"
-              }" ${btn.style ? `style="${btn.style}"` : ""}>${
-                btn.text
-              }</button>`,
+              }" ${btn.style ? `style="${btn.style}"` : ""}>${btn.text}</button>`,
           )
           .join("");
 
@@ -606,6 +601,7 @@
           icon: "spinner",
           hideCloseButton: true,
         });
+
       };
 
       const showSuccessMessage = (payload) => {
@@ -783,15 +779,11 @@
 
         // Update msdyncrm_leadid field with email value
         if (formEmail) {
-          const leadIdInput = document.querySelector(
-            `input[name='msdyncrm_leadid']`,
-          );
+          const leadIdInput = document.querySelector(`input[name='msdyncrm_leadid']`);
           if (leadIdInput) {
             leadIdInput.value = formEmail;
             // Also update in payload if field exists
-            const leadIdField = payload.fields.find(
-              (field) => field.key === "msdyncrm_leadid",
-            );
+            const leadIdField = payload.fields.find(field => field.key === 'msdyncrm_leadid');
             if (leadIdField) {
               leadIdField.value = formEmail;
             }
@@ -817,13 +809,10 @@
           if (result.success) {
             showSuccessMessage(payload);
           } else {
-            if (result.status >= 400 && result.status < 500) {
+            if (result.status === 400) {
               // All 400 errors show success-style dialog but no redirect
               showApplicationReviewMessage();
-            } else if (
-              result.status >= 500 ||
-              result.error === "timeout_error"
-            ) {
+            } else if (result.status === 500 || result.status === 504 || result.error === "timeout_error") {
               // For 500, 504 errors, and timeouts, show delayed message with success styling
               showDialog({
                 dialogClass: "success-dialog",
@@ -843,23 +832,7 @@
                 ],
               });
             } else {
-              showDialog({
-                dialogClass: "success-dialog",
-                title: messages.delayed.title,
-                titleTag: "h1",
-                titleClass: "dialog-title-large",
-                message: messages.delayed.message,
-                messageClass: "dialog-message-large",
-                icon: "success",
-                iconContainer: "success-icon-container",
-                buttons: [
-                  {
-                    text: "OK",
-                    onclick: `window.location.href='${formConfig.thankyouPageUrl}'`,
-                    className: "dialog-button-success",
-                  },
-                ],
-              });
+              showErrorMessage("unknown_error");
             }
           }
         } catch (error) {
@@ -904,13 +877,11 @@
 
       document.addEventListener("d365mkt-afterformload", function () {
         // Capture email field value for lead ID tracking
-        const emailInput = document.querySelector(
-          `input[name='emailaddress1']`,
-        );
+        const emailInput = document.querySelector(`input[name='emailaddress1']`);
         if (emailInput) {
           formEmail = emailInput.value;
         }
-
+        
         // Add custom validation to email field
         const emailField = document.querySelector('input[type="email"]');
         if (emailField) {
@@ -923,9 +894,7 @@
 
         // Initialize intl-tel-input for phone fields with country flags
         const initializePhoneFields = () => {
-          const phoneFields = document.querySelectorAll(
-            'input[type="tel"]:not([name="address2_telephone1"])',
-          );
+          const phoneFields = document.querySelectorAll('input[type="tel"]:not([name="address2_telephone1"])');
 
           phoneFields.forEach((phoneField) => {
             // Skip if already initialized
