@@ -278,6 +278,23 @@ const processPhoneFields = (payload) => {
   });
 };
 
+// Process source form URL field to add current page URL to payload
+const processSourceUrlField = (payload) => {
+  const currentPageUrl = window.location.href;
+  const sourceUrlField = payload.fields.find(
+    (field) => field.key === "aces_sourceformurl",
+  );
+  if (sourceUrlField) {
+    sourceUrlField.value = currentPageUrl;
+  } else {
+    // Add the field if it doesn't exist
+    payload.fields.push({
+      key: "aces_sourceformurl",
+      value: currentPageUrl
+    });
+  }
+};
+
 // Utility functions for dialog management
 const removeExistingDialog = () => {
   const existingDialog = document.getElementById("form-dialog");
@@ -574,6 +591,7 @@ const submitFormHandler = async (payload) => {
   window.processPayorField(payload);
   window.processCaregiverField(payload);
   window.processPhoneFields(payload);
+  window.processSourceUrlField(payload);
 
   // Use the enhanced fetch function
   try {
@@ -654,6 +672,7 @@ if (typeof window !== "undefined") {
   window.processPayorField = processPayorField;
   window.processCaregiverField = processCaregiverField;
   window.processPhoneFields = processPhoneFields;
+  window.processSourceUrlField = processSourceUrlField;
   window.submitFormHandler = submitFormHandler;
   window.showConfirmationDialog = showConfirmationDialog;
   window.showProgressDialog = showProgressDialog;
