@@ -507,6 +507,23 @@
         });
       };
 
+      // Process source form URL field to add current page URL to payload
+      const processSourceUrlField = (payload) => {
+        const currentPageUrl = window.location.href;
+        const sourceUrlField = payload.fields.find(
+          (field) => field.key === "aces_sourceformurl",
+        );
+        if (sourceUrlField) {
+          sourceUrlField.value = currentPageUrl;
+        } else {
+          // Add the field if it doesn't exist
+          payload.fields.push({
+            key: "aces_sourceformurl",
+            value: currentPageUrl
+          });
+        }
+      };
+
       // Utility functions for dialog management
       const removeExistingDialog = () => {
         const existingDialog = document.getElementById("form-dialog");
@@ -802,6 +819,7 @@
         processPayorField(payload);
         processCaregiverField(payload);
         processPhoneFields(payload);
+        processSourceUrlField(payload);
 
         const acesIseligiblediagnosis = payload.fields.find(
           (item) => item.key === "aces_iseligiblediagnosis",
@@ -891,6 +909,7 @@
       window.processPayorField = processPayorField;
       window.processCaregiverField = processCaregiverField;
       window.processPhoneFields = processPhoneFields;
+      window.processSourceUrlField = processSourceUrlField;
       window.submitFormHandler = submitFormHandler;
       window.showConfirmationDialog = showConfirmationDialog;
       window.showProgressDialog = showProgressDialog;
